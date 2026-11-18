@@ -7,6 +7,7 @@ import ErrorState from '../components/ErrorState';
 import Feedback from '../components/Feedback';
 import FieldError from '../components/FieldError';
 import LoadingState from '../components/LoadingState';
+import StockStatusBadge from '../components/StockStatusBadge';
 import { getApiValidationError } from '../services/apiErrors';
 import { getAuthErrorMessage, getHttpStatus } from '../services/authErrors';
 import { productService } from '../services/productService';
@@ -168,7 +169,10 @@ function StockMovementForm({ id }: { id: number }) {
             <h2 className="font-semibold">{product.name}</h2>
             <p className="text-sm text-slate-700">SKU {product.sku}</p>
             {load.status === 'ready' && (
-              <p role="status" className="mt-2 font-semibold tabular-nums">Stock disponible : {numberFormat.format(product.quantity)}</p>
+              <div role="status" className="mt-2 flex flex-wrap items-center gap-2">
+                <p className="font-semibold tabular-nums">Stock disponible : {numberFormat.format(product.quantity)}</p>
+                <StockStatusBadge product={product} />
+              </div>
             )}
             {!isActive && <p className="mt-2 text-sm text-slate-700">Les entrées et sorties sont indisponibles pour ce produit inactif.</p>}
             <FieldError id="movement-product-error" messages={errors.product_id} />
