@@ -17,8 +17,8 @@ export const productService = {
     return data;
   },
 
-  async get(id: number): Promise<DataResponse<Product>> {
-    const { data } = await api.get<DataResponse<Product>>(`/products/${id}`);
+  async get(id: number, signal?: AbortSignal): Promise<DataResponse<Product>> {
+    const { data } = await api.get<DataResponse<Product>>(`/products/${id}`, { signal });
     return data;
   },
 

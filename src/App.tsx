@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Categories from './pages/Categories';
 import Products from './pages/Products';
+import ProductPage from './pages/ProductPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import AppLayout from './components/AppLayout';
 import PlaceholderPage from './pages/PlaceholderPage';
@@ -25,9 +26,12 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/products" element={<Products />} />
+          <Route path="/products/:productId" element={<ProductPage mode="details" />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/stock-movements" element={<PlaceholderPage title="Stock Movements" />} />
           <Route element={<ProtectedRoute requiredRole="admin" />}>
+            <Route path="/products/new" element={<ProductPage mode="create" />} />
+            <Route path="/products/:productId/edit" element={<ProductPage mode="edit" />} />
             <Route path="/employees" element={<PlaceholderPage title="Employees" />} />
           </Route>
         </Route>
