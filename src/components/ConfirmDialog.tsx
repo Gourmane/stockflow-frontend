@@ -40,6 +40,7 @@ export default function ConfirmDialog({
   return (
     <dialog
       ref={dialogRef}
+      closedby={isPending ? 'none' : 'closerequest'}
       aria-labelledby={titleId}
       aria-describedby={descriptionId}
       onCancel={(event) => {
