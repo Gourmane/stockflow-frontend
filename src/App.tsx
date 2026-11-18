@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Categories from './pages/Categories';
+import Products from './pages/Products';
 import ProtectedRoute from './components/ProtectedRoute';
 import AppLayout from './components/AppLayout';
 import PlaceholderPage from './pages/PlaceholderPage';
@@ -23,7 +24,7 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/products" element={<PlaceholderPage title="Products" />} />
+          <Route path="/products" element={<Products />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/stock-movements" element={<PlaceholderPage title="Stock Movements" />} />
           <Route element={<ProtectedRoute requiredRole="admin" />}>
