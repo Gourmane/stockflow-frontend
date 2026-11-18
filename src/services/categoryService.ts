@@ -3,8 +3,8 @@ import type { DataResponse, DataResponseWithMessage } from '../types/api';
 import type { Category, CreateCategoryPayload, UpdateCategoryPayload } from '../types/category';
 
 export const categoryService = {
-  async list(): Promise<DataResponse<Category[]>> {
-    const { data } = await api.get<DataResponse<Category[]>>('/categories');
+  async list(signal?: AbortSignal): Promise<DataResponse<Category[]>> {
+    const { data } = await api.get<DataResponse<Category[]>>('/categories', { signal });
     return data;
   },
 
