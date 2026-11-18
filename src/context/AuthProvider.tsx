@@ -2,33 +2,47 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 
+import { ApiConfigurationError } from '../api/axios';
 import { AuthContext } from './authContext';
+import type { AuthSession } from './authContext';
+import { getAuthErrorMessage, getHttpStatus } from '../services/authErrors';
 import { authService } from '../services/authService';
-import type { User, LoginCredentials } from '../types/auth';
+import type { LoginCredentials } from '../types/auth';
+
+const sessionErrorMessages = {
+  419: 'La vérification de sécurité a échoué. Réessayez.',
+  422: 'Le serveur a rejeté la demande de vérification de la session.',
+  429: 'Trop de demandes de vérification. Réessayez plus tard.',
+};
+
+function failedSessionCheck(error: unknown): AuthSession {
+  const status = getHttpStatus(error);
+
+  if (status === 401) return { status: 'anonymous' };
+  if (status === 403) {
+    return { status: 'anonymous', notice: 'Votre compte est désactivé.' };
+  }
+
+  return {
+    status: 'unavailable',
+    message: getAuthErrorMessage(error, sessionErrorMessages, 'Impossible de vérifier la session pour le moment.'),
+    retryable: !(error instanceof ApiConfigurationError),
+  };
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState<AuthSession>({ status: 'checking' });
+  const [checkAttempt, setCheckAttempt] = useState(0);
 
-  // Restore session when the application starts
   useEffect(() => {
     let active = true;
 
     async function restoreSession() {
       try {
-        const response = await authService.me();
-
-        if (active) {
-          setUser(response.user);
-        }
-      } catch {
-        if (active) {
-          setUser(null);
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
+        const { user } = await authService.me();
+        if (active) setSession({ status: 'authenticated', user });
+      } catch (error) {
+        if (active) setSession(failedSessionCheck(error));
       }
     }
 
@@ -37,22 +51,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [checkAttempt]);
 
-  // Login
-  async function login(credentials: LoginCredentials): Promise<void> {
-    const response = await authService.login(credentials);
-    setUser(response.user);
+  function retrySession() {
+    if (session.status !== 'unavailable' || !session.retryable) return;
+    setSession({ status: 'checking' });
+    setCheckAttempt((attempt) => attempt + 1);
   }
 
-  // Logout
+  async function login(credentials: LoginCredentials): Promise<void> {
+    const { user } = await authService.login(credentials);
+    setSession({ status: 'authenticated', user });
+  }
+
   async function logout(): Promise<void> {
     await authService.logout();
-    setUser(null);
+    setSession({ status: 'anonymous' });
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ session, retrySession, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,24 +1,30 @@
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
 import { useAuth } from '../context/useAuth';
+import { getAuthErrorMessage } from '../services/authErrors';
+
+const logoutErrorMessages = {
+  403: 'Le serveur a refusé la déconnexion.',
+  419: 'La vérification de sécurité (CSRF) a échoué. Réessayez de vous déconnecter.',
+  422: 'Le serveur a rejeté la demande de déconnexion.',
+  429: 'Trop de tentatives de déconnexion. Réessayez plus tard.',
+};
 
 export default function Dashboard() {
   const { logout } = useAuth();
-  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   async function handleLogout() {
+    if (loading) return;
     setLoading(true);
     setError('');
 
     try {
       await logout();
-      navigate('/login', { replace: true });
-    } catch {
-      setError('Erreur lors de la déconnexion.');
+    } catch (err: unknown) {
+      setError(getAuthErrorMessage(err, logoutErrorMessages, 'La déconnexion a échoué. Réessayez plus tard.'));
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,5 @@
-import api from '../api/axios';
+import api, { backendOrigin } from '../api/axios';
+import { getHttpStatus, UnexpectedAuthResponseError } from './authErrors';
 
 import type {
   LoginCredentials,
@@ -7,14 +8,33 @@ import type {
   LogoutResponse,
 } from '../types/auth';
 
-// Backend URL without /api
-const backendOrigin = new URL(import.meta.env.VITE_API_URL).origin;
+let pendingMe: Promise<MeResponse> | undefined;
+
+async function initializeCsrf(): Promise<void> {
+  await api.get('/sanctum/csrf-cookie', { baseURL: backendOrigin });
+}
+
+function requireActiveUser<T extends MeResponse>(data: T): T {
+  if (typeof data?.user?.id !== 'number' || data.user.is_active !== true) {
+    throw new UnexpectedAuthResponseError();
+  }
+  return data;
+}
+
+async function postLogout(): Promise<void> {
+  try {
+    const { data } = await api.post<LogoutResponse>('/logout');
+    if (typeof data?.message !== 'string') throw new UnexpectedAuthResponseError();
+  } catch (error) {
+    // A 401 from /logout confirms that the session has already ended.
+    if (getHttpStatus(error) !== 401) throw error;
+  }
+}
 
 export const authService = {
   // Login
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
-    // Step 1: Initialize CSRF protection
-    await api.get(`${backendOrigin}/sanctum/csrf-cookie`);
+    await initializeCsrf();
 
     // Step 2: Send credentials
     const response = await api.post<LoginResponse>(
@@ -22,18 +42,26 @@ export const authService = {
       credentials
     );
 
-    return response.data;
+    return requireActiveUser(response.data);
   },
 
   // Current authenticated user
-  async me(): Promise<MeResponse> {
-    const response = await api.get<MeResponse>('/me');
-    return response.data;
+  me(): Promise<MeResponse> {
+    pendingMe ??= api.get<MeResponse>('/me')
+      .then(({ data }) => requireActiveUser(data))
+      .finally(() => { pendingMe = undefined; });
+    return pendingMe;
   },
 
   // Logout
-  async logout(): Promise<LogoutResponse> {
-    const response = await api.post<LogoutResponse>('/logout');
-    return response.data;
+  async logout(): Promise<void> {
+    try {
+      await postLogout();
+    } catch (error) {
+      if (getHttpStatus(error) !== 419) throw error;
+
+      await initializeCsrf();
+      await postLogout();
+    }
   },
 };
