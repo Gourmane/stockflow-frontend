@@ -1,20 +1,26 @@
 import { NavLink } from 'react-router';
+import { useAuth } from '../context/useAuth';
 
 const navigation = [
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/products', label: 'Products' },
   { to: '/categories', label: 'Categories' },
   { to: '/stock-movements', label: 'Stock Movements' },
+  { to: '/employees', label: 'Employees', adminOnly: true },
 ];
 
 export default function Sidebar() {
+  const { session } = useAuth();
+  const isAdmin = session.status === 'authenticated' && session.user.role === 'admin';
+  const visibleNavigation = navigation.filter(({ adminOnly }) => !adminOnly || isAdmin);
+
   return (
     <nav
       aria-label="Navigation principale"
       className="border-b border-slate-200 bg-white p-4 md:w-56 md:shrink-0 md:border-r md:border-b-0"
     >
       <ul className="grid grid-cols-2 gap-1 md:grid-cols-1">
-        {navigation.map(({ to, label }) => (
+        {visibleNavigation.map(({ to, label }) => (
           <li key={to}>
             <NavLink
               to={to}

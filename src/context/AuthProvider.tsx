@@ -15,10 +15,10 @@ const sessionErrorMessages = {
   429: 'Trop de demandes de vérification. Réessayez plus tard.',
 };
 
-function failedSessionCheck(error: unknown): AuthSession {
+function failedSessionCheck(error: unknown, missingSessionNotice?: string): AuthSession {
   const status = getHttpStatus(error);
 
-  if (status === 401) return { status: 'anonymous' };
+  if (status === 401) return { status: 'anonymous', notice: missingSessionNotice };
   if (status === 403) {
     return { status: 'anonymous', notice: 'Votre compte est désactivé.' };
   }
@@ -60,8 +60,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function login(credentials: LoginCredentials): Promise<void> {
-    const { user } = await authService.login(credentials);
-    setSession({ status: 'authenticated', user });
+    await authService.login(credentials);
+
+    try {
+      const { user } = await authService.me();
+      setSession({ status: 'authenticated', user });
+    } catch (error) {
+      setSession(failedSessionCheck(error, 'La session n’a pas pu être ouverte. Réessayez de vous connecter.'));
+    }
   }
 
   async function logout(): Promise<void> {
