@@ -3,7 +3,7 @@ import { useAuth } from '../context/useAuth';
 
 const navigation = [
   { to: '/dashboard', label: 'Dashboard' },
-  { to: '/products', label: 'Products' },
+  { to: '/products', label: 'Produits' },
   { to: '/categories', label: 'Categories' },
   { to: '/stock-movements', label: 'Stock Movements' },
   { to: '/employees', label: 'Employees', adminOnly: true },

@@ -3,8 +3,8 @@ import type { DataResponse, DataResponseWithMessage } from '../types/api';
 import type { CreateProductPayload, Product, UpdatedProduct, UpdateProductPayload } from '../types/product';
 
 export const productService = {
-  async list(): Promise<DataResponse<Product[]>> {
-    const { data } = await api.get<DataResponse<Product[]>>('/products');
+  async list(signal?: AbortSignal): Promise<DataResponse<Product[]>> {
+    const { data } = await api.get<DataResponse<Product[]>>('/products', { signal });
     return data;
   },
 
