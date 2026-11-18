@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from 'react-router';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import AppLayout from './components/AppLayout';
+import PlaceholderPage from './pages/PlaceholderPage';
 
 export default function App() {
   return (
@@ -18,7 +20,12 @@ export default function App() {
 
       {/* Routes protégées */}
       <Route element={<ProtectedRoute />}>
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route element={<AppLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/products" element={<PlaceholderPage title="Products" />} />
+          <Route path="/categories" element={<PlaceholderPage title="Categories" />} />
+          <Route path="/stock-movements" element={<PlaceholderPage title="Stock Movements" />} />
+        </Route>
       </Route>
 
       {/* Page inconnue */}
