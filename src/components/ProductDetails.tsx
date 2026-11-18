@@ -17,7 +17,11 @@ const statusErrorMessages = {
   422: 'Le serveur a rejeté le changement de statut.',
 };
 
-export default function ProductDetails({ product: initialProduct, editPath }: { product: Product; editPath: string }) {
+export default function ProductDetails({ product: initialProduct, editPath, movementPath }: {
+  product: Product;
+  editPath: string;
+  movementPath: string;
+}) {
   const [product, setProduct] = useState(initialProduct);
   const [isConfirming, setIsConfirming] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -89,6 +93,14 @@ export default function ProductDetails({ product: initialProduct, editPath }: { 
         <ProductStatus isActive={product.is_active} />
       </div>
       <ProductFacts product={product} details />
+      {isActive ? (
+        <Link
+          to={movementPath}
+          className="inline-flex min-h-11 items-center rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+        >
+          Enregistrer un mouvement
+        </Link>
+      ) : <p className="text-sm text-slate-600">Les mouvements sont indisponibles pour ce produit inactif.</p>}
       {isAdmin && (
         <>
           {feedback && !isConfirming && <Feedback status={feedback.status} message={feedback.message} />}

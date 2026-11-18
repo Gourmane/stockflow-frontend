@@ -5,7 +5,7 @@ const navigation = [
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/products', label: 'Produits' },
   { to: '/categories', label: 'Categories' },
-  { to: '/stock-movements', label: 'Stock Movements' },
+  { to: '/stock-movements', label: 'Mouvements de stock' },
   { to: '/employees', label: 'Employees', adminOnly: true },
 ];
 

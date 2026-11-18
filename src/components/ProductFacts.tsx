@@ -1,4 +1,5 @@
 import type { Product } from '../types/product';
+import StockStatusBadge from './StockStatusBadge';
 
 const priceFormat = new Intl.NumberFormat('fr-FR', {
   minimumFractionDigits: 2,
@@ -30,6 +31,7 @@ export function ProductFacts({ product, details = false }: { product: Product; d
     { label: 'Prix unitaire', value: unitPrice },
     { label: 'Quantité actuelle', value: product.quantity },
     { label: 'Stock minimum', value: product.min_stock },
+    { label: 'État du stock', value: <StockStatusBadge product={product} /> },
   ];
   if (details) {
     fields.push(
