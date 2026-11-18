@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import Categories from './pages/Categories';
 import Products from './pages/Products';
 import ProductPage from './pages/ProductPage';
+import StockMovementPage, { StockMovementStart } from './pages/StockMovementPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import AppLayout from './components/AppLayout';
 import PlaceholderPage from './pages/PlaceholderPage';
@@ -28,7 +29,8 @@ export default function App() {
           <Route path="/products" element={<Products />} />
           <Route path="/products/:productId" element={<ProductPage mode="details" />} />
           <Route path="/categories" element={<Categories />} />
-          <Route path="/stock-movements" element={<PlaceholderPage title="Stock Movements" />} />
+          <Route path="/stock-movements" element={<StockMovementStart />} />
+          <Route path="/stock-movements/new/:productId" element={<StockMovementPage />} />
           <Route element={<ProtectedRoute requiredRole="admin" />}>
             <Route path="/products/new" element={<ProductPage mode="create" />} />
             <Route path="/products/:productId/edit" element={<ProductPage mode="edit" />} />

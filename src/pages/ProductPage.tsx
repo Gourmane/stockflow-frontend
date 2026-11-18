@@ -44,6 +44,7 @@ function ProductPageContent({ mode, id }: { mode: Mode; id: number | null }) {
   const listPath = `/products${location.search}`;
   const detailsPath = `/products/${id}${location.search}`;
   const editPath = `/products/${id}/edit${location.search}`;
+  const movementPath = `/stock-movements/new/${id}${location.search}`;
   const feedback = location.state === 'product-created' ? 'Produit créé.' : 'Modifications enregistrées.';
 
   useEffect(() => {
@@ -124,7 +125,9 @@ function ProductPageContent({ mode, id }: { mode: Mode; id: number | null }) {
         <>
           {state.status === 'loading' && <LoadingState message="Chargement de la page produit…" />}
           {state.status === 'error' && <ErrorState message={state.message} onRetry={retry} />}
-          {state.status === 'details' && <ProductDetails product={state.product} editPath={editPath} />}
+          {state.status === 'details' && (
+            <ProductDetails product={state.product} editPath={editPath} movementPath={movementPath} />
+          )}
           {state.status === 'form' && (state.categories.length ? (
             <ProductForm
               categories={state.categories}

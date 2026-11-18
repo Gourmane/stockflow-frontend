@@ -11,7 +11,11 @@ export const stockMovementService = {
   },
 
   async create(payload: CreateStockMovementPayload): Promise<DataResponseWithMessage<StockMovement>> {
-    const { data } = await api.post<DataResponseWithMessage<StockMovement>>('/stock-movements', payload);
+    const { data, status } = await api.post<DataResponseWithMessage<StockMovement>>('/stock-movements', payload);
+    if (status !== 201 || data?.data?.product_id !== payload.product_id || !Number.isSafeInteger(data.data.id)
+      || data.data.id < 1 || data.data.quantity !== payload.quantity || data.data.type !== payload.type) {
+      throw new Error('Réponse de création du mouvement inattendue.');
+    }
     return data;
   },
 };
