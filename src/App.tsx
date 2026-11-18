@@ -25,6 +25,9 @@ export default function App() {
           <Route path="/products" element={<PlaceholderPage title="Products" />} />
           <Route path="/categories" element={<PlaceholderPage title="Categories" />} />
           <Route path="/stock-movements" element={<PlaceholderPage title="Stock Movements" />} />
+          <Route element={<ProtectedRoute requiredRole="admin" />}>
+            <Route path="/employees" element={<PlaceholderPage title="Employees" />} />
+          </Route>
         </Route>
       </Route>
 

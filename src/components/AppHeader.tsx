@@ -36,6 +36,9 @@ export default function AppHeader() {
         <span className="text-lg font-bold">StockFlow</span>
         <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4">
           <p className="min-w-0 text-sm font-medium wrap-anywhere">{session.user.name}</p>
+          <span className="text-xs font-medium text-slate-600">
+            {session.user.role === 'admin' ? 'Admin' : 'Employé'}
+          </span>
           <button
             type="button"
             onClick={handleLogout}
