@@ -3,9 +3,10 @@ import type { DataResponseWithMessage, Pagination } from '../types/api';
 import type { CreateStockMovementPayload, StockMovement, StockMovementHistoryItem } from '../types/stockMovement';
 
 export const stockMovementService = {
-  async list(page = 1): Promise<Pagination<StockMovementHistoryItem>> {
+  async list(page = 1, signal?: AbortSignal): Promise<Pagination<StockMovementHistoryItem>> {
     const { data } = await api.get<Pagination<StockMovementHistoryItem>>('/stock-movements', {
       params: { page },
+      signal,
     });
     return data;
   },

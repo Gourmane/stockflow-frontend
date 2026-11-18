@@ -33,19 +33,6 @@ type Field = 'product_id' | 'type' | 'quantity' | 'note';
 type FieldErrors = Partial<Record<Field, string[]>>;
 type Submission = { status: 'success' | 'error'; message: string };
 
-export function StockMovementStart() {
-  return (
-    <div lang="fr" className="max-w-3xl space-y-4">
-      <h1 className="text-2xl font-bold">Mouvements de stock</h1>
-      <EmptyState
-        title="Enregistrer un mouvement"
-        description="Ouvrez la fiche du produit concerné pour saisir une entrée ou une sortie."
-        action={<Link to="/products" className={linkStyle}>Choisir un produit</Link>}
-      />
-    </div>
-  );
-}
-
 function StockMovementForm({ id }: { id: number }) {
   const { search } = useLocation();
   const [product, setProduct] = useState<Product | null>(null);
