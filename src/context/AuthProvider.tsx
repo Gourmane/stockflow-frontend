@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 
 import { ApiConfigurationError } from '../api/axios';
@@ -33,6 +33,12 @@ function failedSessionCheck(error: unknown, missingSessionNotice?: string): Auth
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<AuthSession>({ status: 'checking' });
   const [checkAttempt, setCheckAttempt] = useState(0);
+
+  const expireSession = useCallback(() => {
+    setSession((current) => current.status === 'authenticated'
+      ? { status: 'anonymous', notice: 'Votre session a expiré. Veuillez vous reconnecter.' }
+      : current);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -76,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ session, retrySession, login, logout }}>
+    <AuthContext.Provider value={{ session, retrySession, expireSession, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

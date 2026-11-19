@@ -6,7 +6,7 @@ const navigation = [
   { to: '/products', label: 'Produits' },
   { to: '/categories', label: 'Categories' },
   { to: '/stock-movements', label: 'Mouvements de stock' },
-  { to: '/employees', label: 'Employees', adminOnly: true },
+  { to: '/employees', label: 'Utilisateurs', adminOnly: true },
 ];
 
 export default function Sidebar() {

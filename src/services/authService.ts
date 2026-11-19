@@ -32,6 +32,8 @@ async function postLogout(): Promise<void> {
 }
 
 export const authService = {
+  refreshCsrf: initializeCsrf,
+
   // Login
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
     await initializeCsrf();
