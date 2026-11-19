@@ -1,8 +1,8 @@
 import api from '../api/axios';
 import type { DataResponse, DataResponseWithMessage } from '../types/api';
 import type {
-  CreatedEmployee,
-  CreateEmployeePayload,
+  CreatedUser,
+  CreateUserPayload,
   Employee,
   UpdatedEmployee,
   UpdateEmployeePayload,
@@ -10,13 +10,18 @@ import type {
 } from '../types/employee';
 
 export const userService = {
-  async list(): Promise<DataResponse<Employee[]>> {
-    const { data } = await api.get<DataResponse<Employee[]>>('/users');
+  async list(signal?: AbortSignal): Promise<DataResponse<Employee[]>> {
+    const { data } = await api.get<DataResponse<Employee[]>>('/users', { signal });
+    if (!Array.isArray(data?.data)) throw new Error('Réponse inattendue pour la liste des employés.');
     return data;
   },
 
-  async create(payload: CreateEmployeePayload): Promise<DataResponseWithMessage<CreatedEmployee>> {
-    const { data } = await api.post<DataResponseWithMessage<CreatedEmployee>>('/users', payload);
+  async create(payload: CreateUserPayload): Promise<DataResponseWithMessage<CreatedUser>> {
+    const { data, status } = await api.post<DataResponseWithMessage<CreatedUser>>('/users', payload);
+    if (status !== 201 || !Number.isSafeInteger(data?.data?.id)
+      || data.data.role !== (payload.role ?? 'employee') || data.data.is_active !== true) {
+      throw new Error('Réponse inattendue lors de la création du compte.');
+    }
     return data;
   },
 
@@ -25,6 +30,9 @@ export const userService = {
     payload: UpdateEmployeePayload,
   ): Promise<DataResponseWithMessage<UpdatedEmployee>> {
     const { data } = await api.patch<DataResponseWithMessage<UpdatedEmployee>>(`/users/${id}`, payload);
+    if (data?.data?.id !== id || data.data.role !== 'employee') {
+      throw new Error('Réponse inattendue lors de la modification du compte.');
+    }
     return data;
   },
 
@@ -33,6 +41,9 @@ export const userService = {
     payload: UpdateEmployeeStatusPayload,
   ): Promise<DataResponseWithMessage<UpdatedEmployee>> {
     const { data } = await api.patch<DataResponseWithMessage<UpdatedEmployee>>(`/users/${id}/status`, payload);
+    if (data?.data?.id !== id || data.data.role !== 'employee' || data.data.is_active !== payload.is_active) {
+      throw new Error('Réponse inattendue lors du changement de statut.');
+    }
     return data;
   },
 };

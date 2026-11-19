@@ -9,7 +9,7 @@ import StockMovementPage from './pages/StockMovementPage';
 import StockMovements from './pages/StockMovements';
 import ProtectedRoute from './components/ProtectedRoute';
 import AppLayout from './components/AppLayout';
-import PlaceholderPage from './pages/PlaceholderPage';
+import Users from './pages/Users';
 
 export default function App() {
   return (
@@ -35,7 +35,7 @@ export default function App() {
           <Route element={<ProtectedRoute requiredRole="admin" />}>
             <Route path="/products/new" element={<ProductPage mode="create" />} />
             <Route path="/products/:productId/edit" element={<ProductPage mode="edit" />} />
-            <Route path="/employees" element={<PlaceholderPage title="Employees" />} />
+            <Route path="/employees" element={<Users />} />
           </Route>
         </Route>
       </Route>
