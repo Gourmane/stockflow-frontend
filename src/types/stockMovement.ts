@@ -20,6 +20,7 @@ export interface StockMovementHistoryItem extends StockMovement {
 }
 
 export interface CreateStockMovementPayload {
+  idempotency_key: string;
   product_id: number;
   type: StockMovementType;
   quantity: number;
