@@ -8,12 +8,13 @@ import Feedback from '../components/Feedback';
 import FieldError from '../components/FieldError';
 import LoadingState from '../components/LoadingState';
 import StockStatusBadge from '../components/StockStatusBadge';
+import { useAuth } from '../context/useAuth';
 import { getApiValidationError } from '../services/apiErrors';
 import { getAuthErrorMessage, getHttpStatus } from '../services/authErrors';
 import { productService } from '../services/productService';
 import { stockMovementService } from '../services/stockMovementService';
 import type { Product } from '../types/product';
-import type { StockMovementType } from '../types/stockMovement';
+import type { CreateStockMovementPayload, StockMovementType } from '../types/stockMovement';
 
 // Matches Laravel's StockMovementService::MAX_QUANTITY and MySQL's unsigned INT.
 const maxQuantity = 4_294_967_295;
@@ -23,6 +24,7 @@ const statusMessages = {
   401: 'Votre session a expiré. Reconnectez-vous pour accéder aux mouvements de stock.',
   403: 'Vous n’avez pas accès à cette opération.',
   404: 'Ce produit est introuvable.',
+  409: 'Cette clé correspond déjà à un autre mouvement. Vérifiez l’historique avant de renvoyer la saisie.',
   419: 'La vérification de sécurité (CSRF) a échoué. Reconnectez-vous puis réessayez.',
   422: 'Le serveur a rejeté le mouvement. Vérifiez les valeurs saisies.',
 };
@@ -34,16 +36,62 @@ type Field = 'product_id' | 'type' | 'quantity' | 'note';
 type FieldErrors = Partial<Record<Field, string[]>>;
 type Submission = { status: 'success' | 'error'; message: string };
 
-function StockMovementForm({ id }: { id: number }) {
+function createMovementKey(): string {
+  if (globalThis.crypto.randomUUID) return globalThis.crypto.randomUUID();
+
+  const bytes = globalThis.crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  return [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20)].join('-');
+}
+
+function readPendingMovement(storageKey: string, productId: number): CreateStockMovementPayload | null {
+  try {
+    const movement: CreateStockMovementPayload | null = JSON.parse(sessionStorage.getItem(storageKey) ?? 'null');
+    if (movement?.product_id === productId
+      && typeof movement.idempotency_key === 'string'
+      && /^[a-f\d]{8}(?:-[a-f\d]{4}){3}-[a-f\d]{12}$/i.test(movement.idempotency_key)
+      && (movement.type === 'in' || movement.type === 'out')
+      && Number.isInteger(movement.quantity) && movement.quantity >= 1 && movement.quantity <= maxQuantity
+      && (typeof movement.note === 'string' || movement.note === null)) {
+      return movement;
+    }
+  } catch {
+    // The form can still retry in memory when session storage is unavailable.
+  }
+  return null;
+}
+
+function rememberMovement(storageKey: string, movement: CreateStockMovementPayload) {
+  const serialized = JSON.stringify(movement);
+  try {
+    sessionStorage.setItem(storageKey, serialized);
+  } catch {
+    // The form still holds the request for a retry.
+  }
+  return () => {
+    try {
+      if (sessionStorage.getItem(storageKey) === serialized) sessionStorage.removeItem(storageKey);
+    } catch {
+      // Session storage may be unavailable.
+    }
+  };
+}
+
+function StockMovementForm({ id, storageKey }: { id: number; storageKey: string }) {
   const { search } = useLocation();
   const [product, setProduct] = useState<Product | null>(null);
   const [load, setLoad] = useState<LoadState>({ status: 'loading' });
   const [attempt, setAttempt] = useState(0);
-  const [type, setType] = useState<StockMovementType>('in');
-  const [quantity, setQuantity] = useState('');
-  const [note, setNote] = useState('');
+  const [retry, setRetry] = useState(() => readPendingMovement(storageKey, id));
+  const [type, setType] = useState<StockMovementType>(retry?.type ?? 'in');
+  const [quantity, setQuantity] = useState(retry ? String(retry.quantity) : '');
+  const [note, setNote] = useState(retry?.note ?? '');
   const [errors, setErrors] = useState<FieldErrors>({});
-  const [feedback, setFeedback] = useState<Submission | null>(null);
+  const [feedback, setFeedback] = useState<Submission | null>(retry ? {
+    status: 'error', message: 'Ce mouvement reste à confirmer. Réessayez pour obtenir son résultat.',
+  } : null);
   const [pending, setPending] = useState(false);
   const submitting = useRef(false);
   const mounted = useRef(false);
@@ -96,44 +144,56 @@ function StockMovementForm({ id }: { id: number }) {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (submitting.current || load.status !== 'ready' || !product || !isActive) return;
+    if (submitting.current || load.status !== 'ready' || !product || (!isActive && !retry)) return;
 
-    const amount = Number(quantity);
-    const cleanNote = note.trim();
-    const fieldErrors: FieldErrors = {};
+    let movement = retry;
+    if (!movement) {
+      const amount = Number(quantity);
+      const cleanNote = note.trim();
+      const fieldErrors: FieldErrors = {};
 
-    if (!/^\d+$/.test(quantity) || !Number.isSafeInteger(amount) || amount < 1) {
-      fieldErrors.quantity = ['Saisissez un entier strictement positif.'];
-    } else if (amount > maxQuantity) {
-      fieldErrors.quantity = [`La quantité maximale est de ${numberFormat.format(maxQuantity)}.`];
-    } else if (type === 'out' && amount > product.quantity) {
-      fieldErrors.quantity = ['La quantité dépasse le stock disponible.'];
-    } else if (type === 'in' && amount > maxQuantity - product.quantity) {
-      fieldErrors.quantity = ['Cette entrée dépasserait le stock maximal autorisé.'];
-    }
-    if (Array.from(cleanNote).length > maxNoteLength) {
-      fieldErrors.note = ['La note doit contenir au plus 1 000 caractères.'];
-    }
+      if (!/^\d+$/.test(quantity) || !Number.isSafeInteger(amount) || amount < 1) {
+        fieldErrors.quantity = ['Saisissez un entier strictement positif.'];
+      } else if (amount > maxQuantity) {
+        fieldErrors.quantity = [`La quantité maximale est de ${numberFormat.format(maxQuantity)}.`];
+      } else if (type === 'out' && amount > product.quantity) {
+        fieldErrors.quantity = ['La quantité dépasse le stock disponible.'];
+      } else if (type === 'in' && amount > maxQuantity - product.quantity) {
+        fieldErrors.quantity = ['Cette entrée dépasserait le stock maximal autorisé.'];
+      }
+      if (Array.from(cleanNote).length > maxNoteLength) {
+        fieldErrors.note = ['La note doit contenir au plus 1 000 caractères.'];
+      }
 
-    setErrors(fieldErrors);
-    if (Object.keys(fieldErrors).length) {
-      setFeedback({ status: 'error', message: 'Vérifiez les champs signalés.' });
-      return;
+      setErrors(fieldErrors);
+      if (Object.keys(fieldErrors).length) {
+        setFeedback({ status: 'error', message: 'Vérifiez les champs signalés.' });
+        return;
+      }
+
+      movement = { idempotency_key: createMovementKey(), product_id: id, type, quantity: amount, note: cleanNote || null };
     }
 
     submitting.current = true;
+    const forgetMovement = rememberMovement(storageKey, movement);
     setPending(true);
     setFeedback(null);
     try {
-      await stockMovementService.create({ product_id: id, type, quantity: amount, note: cleanNote || null });
+      await stockMovementService.create(movement);
+      forgetMovement();
       if (!mounted.current) return;
+      setRetry(null);
       setQuantity('');
       setNote('');
       setFeedback({ status: 'success', message: 'Mouvement enregistré.' });
       reloadProduct();
     } catch (error) {
-      if (!mounted.current) return;
       const httpStatus = getHttpStatus(error);
+      const rejected = httpStatus === 404 || httpStatus === 409 || httpStatus === 422
+        || (!retry && (httpStatus === 401 || httpStatus === 403 || httpStatus === 419));
+      if (rejected) forgetMovement();
+      if (!mounted.current) return;
+      setRetry(rejected ? null : movement);
       const validation = getApiValidationError(error);
       if (validation) {
         setErrors(validation.errors);
@@ -142,10 +202,9 @@ function StockMovementForm({ id }: { id: number }) {
         reloadProduct();
       }
       const message = getAuthErrorMessage(error, statusMessages, 'Impossible de confirmer l’enregistrement.');
-      const outcomeUnknown = httpStatus === undefined || httpStatus >= 500;
       setFeedback({
         status: 'error',
-        message: outcomeUnknown ? `${message} Vérifiez les mouvements de stock avant de renvoyer cette saisie.` : message,
+        message: rejected ? message : `${message} Les informations du mouvement ont été conservées pour le prochain essai.`,
       });
     } finally {
       submitting.current = false;
@@ -177,7 +236,7 @@ function StockMovementForm({ id }: { id: number }) {
             {!isActive && <p className="mt-2 text-sm text-slate-700">Les entrées et sorties sont indisponibles pour ce produit inactif.</p>}
             <FieldError id="movement-product-error" messages={errors.product_id} />
           </div>
-          <fieldset disabled={pending || load.status !== 'ready' || !isActive} className="min-w-0 space-y-4">
+          <fieldset disabled={pending || load.status !== 'ready' || !isActive || Boolean(retry)} className="min-w-0 space-y-4">
             <div>
               <label htmlFor="movement-type" className="text-sm font-medium">Type de mouvement</label>
               <select
@@ -224,8 +283,15 @@ function StockMovementForm({ id }: { id: number }) {
               />
               <FieldError id="movement-note-error" messages={errors.note} />
             </div>
-            <ActionButton type="submit" isPending={pending} pendingLabel="Enregistrement…">Enregistrer</ActionButton>
           </fieldset>
+          <ActionButton
+            type="submit"
+            disabled={load.status !== 'ready' || (!isActive && !retry)}
+            isPending={pending}
+            pendingLabel="Enregistrement…"
+          >
+            {retry ? 'Réessayer ce mouvement' : 'Enregistrer'}
+          </ActionButton>
         </form>
       )}
     </div>
@@ -234,6 +300,7 @@ function StockMovementForm({ id }: { id: number }) {
 
 export default function StockMovementPage() {
   const { productId } = useParams();
+  const { session } = useAuth();
   const id = productId && /^[1-9]\d*$/.test(productId) ? Number(productId) : NaN;
   if (!Number.isSafeInteger(id)) {
     return (
@@ -243,5 +310,7 @@ export default function StockMovementPage() {
       />
     );
   }
-  return <StockMovementForm key={id} id={id} />;
+  if (session.status !== 'authenticated') return null;
+  const storageKey = `stockflow.pending-movement.${session.user.id}.${id}`;
+  return <StockMovementForm key={storageKey} id={id} storageKey={storageKey} />;
 }
