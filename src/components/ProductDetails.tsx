@@ -8,6 +8,7 @@ import ActionButton from './ActionButton';
 import ConfirmDialog from './ConfirmDialog';
 import Feedback from './Feedback';
 import { ProductFacts, ProductStatus } from './ProductFacts';
+import ProductImage from './ProductImage';
 
 const statusErrorMessages = {
   401: 'Votre session a expiré. Reconnectez-vous pour changer le statut du produit.',
@@ -87,27 +88,30 @@ export default function ProductDetails({ product: initialProduct, editPath, move
   }
 
   return (
-    <section aria-labelledby="product-name" className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
+    <section aria-labelledby="product-name" className="panel space-y-5 p-4 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 id="product-name" className="min-w-0 text-lg font-semibold wrap-anywhere">{product.name}</h2>
         <ProductStatus isActive={product.is_active} />
       </div>
-      <ProductFacts product={product} details />
+      <div className="grid items-start gap-5 border-t border-line pt-5 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+        <ProductImage key={product.image_url} url={product.image_url} description={product.name} featured />
+        <ProductFacts product={product} />
+      </div>
       {isActive ? (
         <Link
           to={movementPath}
-          className="inline-flex min-h-11 items-center rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+          className="button button-primary"
         >
           Enregistrer un mouvement
         </Link>
-      ) : <p className="text-sm text-slate-600">Les mouvements sont indisponibles pour ce produit inactif.</p>}
+      ) : <p className="text-sm text-muted">Les mouvements sont indisponibles pour ce produit inactif.</p>}
       {isAdmin && (
         <>
           {feedback && !isConfirming && <Feedback status={feedback.status} message={feedback.message} />}
           <div className="flex flex-wrap gap-2">
             <Link
               to={editPath}
-              className="inline-flex min-h-11 items-center rounded-md border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+              className="button button-secondary"
             >
               Modifier le produit
             </Link>

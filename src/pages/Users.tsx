@@ -127,9 +127,9 @@ export default function Users() {
   }
 
   return (
-    <div lang="fr" className="max-w-4xl space-y-4">
+    <div lang="fr" className="page-content">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 ref={heading} tabIndex={-1} className="text-2xl font-bold">Utilisateurs</h1>
+        <h1 ref={heading} tabIndex={-1} className="page-title">Utilisateurs</h1>
         {list.status === 'ready' && !editor && (
           <ActionButton disabled={statusPending} onClick={() => openEditor({ mode: 'create' })}>
             Créer un utilisateur
@@ -155,22 +155,22 @@ export default function Users() {
             <section aria-labelledby="employee-list-heading" className="space-y-3">
               <div>
                 <h2 id="employee-list-heading" className="text-lg font-semibold">Comptes employés</h2>
-                <p className="mt-1 text-sm text-slate-600">
+                <p className="mt-1 text-sm text-muted">
                   Vous pouvez créer un Admin ou un employé. La modification et le changement de statut sont réservés aux comptes employés.
                 </p>
               </div>
               {list.employees.length === 0 ? <EmptyState title="Aucun compte employé" /> : (
-                <ul role="list" className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+                <ul role="list" className="panel divide-y divide-line">
                   {list.employees.map((employee) => (
                     <li key={employee.id} className="flex flex-wrap items-center justify-between gap-3 p-4 sm:px-5">
                       <div className="min-w-0 max-w-full space-y-1 wrap-anywhere">
                         <h3 className="font-semibold">{employee.name}</h3>
-                        <p className="text-sm text-slate-600">{employee.email}</p>
+                        <p className="text-sm text-muted">{employee.email}</p>
                         <div className="flex flex-wrap items-center gap-2 text-sm">
                           <span>{employee.role === 'employee' ? 'Employé' : 'Admin'}</span>
-                          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${employee.is_active
+                          <span className={`badge ${employee.is_active
                             ? 'bg-emerald-50 text-emerald-800'
-                            : 'bg-slate-100 text-slate-700'}`}
+                            : 'bg-zinc-100 text-muted'}`}
                           >
                             {employee.is_active ? 'Actif' : 'Inactif'}
                           </span>

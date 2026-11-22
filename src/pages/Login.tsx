@@ -2,6 +2,11 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Navigate } from 'react-router';
+import { ArrowLeftRight, CircleUserRound, LockKeyhole, LogIn, Mail, Package, ShieldCheck, TriangleAlert } from 'lucide-react';
+import ActionButton from '../components/ActionButton';
+import Brand from '../components/Brand';
+import Feedback from '../components/Feedback';
+import LoadingState from '../components/LoadingState';
 import SessionCheckError from '../components/SessionCheckError';
 import { useAuth } from '../context/useAuth';
 import { getAuthErrorMessage } from '../services/authErrors';
@@ -14,6 +19,13 @@ const loginErrorMessages = {
   429: 'Trop de tentatives de connexion. Réessayez plus tard.',
 };
 
+const capabilities = [
+  { icon: Package, label: 'Catalogue des équipements' },
+  { icon: ArrowLeftRight, label: 'Suivi des entrées et sorties' },
+  { icon: ShieldCheck, label: 'Accès administrateur et employé' },
+  { icon: TriangleAlert, label: 'Seuils et ruptures de stock' },
+];
+
 export default function Login() {
   const { session, retrySession, login } = useAuth();
 
@@ -22,6 +34,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const notice = session.status === 'anonymous' ? session.notice : undefined;
+  const feedback = error || notice;
   const submitDisabled = loading || session.status === 'checking'
     || (session.status === 'unavailable' && !session.retryable);
 
@@ -50,69 +63,96 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm rounded-xl bg-white p-8 shadow-lg"
-      >
-        <h1 className="mb-2 text-center text-2xl font-bold">
-          StockFlow
-        </h1>
-
-        <p className="mb-6 text-center text-gray-500">
-          Connexion à votre espace
-        </p>
-
-        {session.status === 'checking' && (
-          <p role="status" className="mb-4 text-sm">Vérification de la session...</p>
-        )}
-
-        {session.status === 'unavailable' && (
-          <SessionCheckError
-            message={session.message}
-            onRetry={session.retryable ? handleRetry : undefined}
-            disabled={loading}
-          />
-        )}
-
-        {(error || notice) && (
-          <p role="alert" className="mb-4 rounded bg-red-100 p-3 text-sm text-red-700">
-            {error || notice}
+    <div className="login-layout">
+      <div className="login-backdrop" aria-hidden="true" />
+      <aside className="login-intro" aria-labelledby="login-intro-title">
+        <Brand />
+        <div className="login-intro-copy">
+          <h2 id="login-intro-title">
+            La gestion de stock, <span>simplifiée.</span>
+          </h2>
+          <p className="mt-4 max-w-[40ch] text-sm leading-relaxed text-zinc-200 sm:text-base">
+            Centralisez votre matériel informatique, suivez les entrées et sorties et anticipez les ruptures.
           </p>
-        )}
+          <ul role="list" className="mt-4 grid w-fit grid-cols-2 gap-x-4 gap-y-2 lg:mt-8 lg:grid-cols-1 lg:gap-3">
+            {capabilities.map(({ icon: Icon, label }) => (
+              <li key={label} className="flex items-center gap-2 text-xs font-medium lg:gap-3 lg:text-sm">
+                <span className="grid size-6 shrink-0 place-items-center rounded-md border border-white/15 bg-ink/80 lg:size-9">
+                  <Icon aria-hidden="true" className="size-3.5 text-rose-200 lg:size-[18px]" />
+                </span>
+                {label}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </aside>
 
-        <label htmlFor="email" className="mb-1 block text-sm">
-          Email
-        </label>
-        <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="mb-4 w-full rounded border p-2"
-        />
+      <main className="login-main">
+        <div className="login-card">
+          <div className="mb-7">
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Bienvenue</h1>
+            <p className="mt-2 text-sm text-muted sm:text-base">Connectez-vous à votre espace StockFlow.</p>
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {session.status === 'checking' && <LoadingState message="Vérification de la session..." />}
+            {session.status === 'unavailable' && (
+              <SessionCheckError
+                message={session.message}
+                onRetry={session.retryable ? handleRetry : undefined}
+                disabled={loading}
+              />
+            )}
+            {feedback && <Feedback status="error" message={feedback} />}
 
-        <label htmlFor="password" className="mb-1 block text-sm">
-          Mot de passe
-        </label>
-        <input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="mb-6 w-full rounded border p-2"
-        />
+            <div>
+              <label htmlFor="email" className="login-label">
+                <Mail aria-hidden="true" className="size-4 text-brand" /> Adresse email
+              </label>
+              <input
+                id="email"
+                type="email"
+                autoComplete="username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="field-control"
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="login-label">
+                <LockKeyhole aria-hidden="true" className="size-4 text-brand" /> Mot de passe
+              </label>
+              <input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="field-control"
+              />
+            </div>
 
-        <button
-          type="submit"
-          disabled={submitDisabled}
-          className="w-full rounded bg-blue-600 p-3 text-white disabled:opacity-50"
-        >
-          {loading ? 'Connexion...' : 'Se connecter'}
-        </button>
-      </form>
+            <ActionButton type="submit" disabled={submitDisabled} isPending={loading} pendingLabel="Connexion..." className="w-full sm:min-h-12">
+              <LogIn aria-hidden="true" className="size-[18px]" /> Se connecter
+            </ActionButton>
+          </form>
+
+          <section aria-labelledby="demo-heading" className="mt-8 border-t border-line pt-5">
+            <h2 id="demo-heading" className="text-sm font-semibold">Comptes de démonstration</h2>
+            <ul role="list" className="mt-3 grid gap-2 min-[365px]:grid-cols-2">
+              <li className="demo-role"><ShieldCheck aria-hidden="true" /> Administrateur</li>
+              <li className="demo-role"><CircleUserRound aria-hidden="true" /> Employé</li>
+            </ul>
+            <p className="mt-2 text-xs text-muted">Identifiants de démonstration non publiés.</p>
+          </section>
+        </div>
+      </main>
+
+      <footer className="login-credit">
+        <p className="text-sm">Développé par <strong className="font-semibold">Mostafa Gourmane</strong></p>
+        <p className="mt-1 text-xs">Étudiant en Licence Génie Logiciel — Développeur Full Stack.</p>
+      </footer>
     </div>
   );
 }

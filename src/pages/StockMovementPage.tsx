@@ -28,8 +28,6 @@ const statusMessages = {
   419: 'La vérification de sécurité (CSRF) a échoué. Reconnectez-vous puis réessayez.',
   422: 'Le serveur a rejeté le mouvement. Vérifiez les valeurs saisies.',
 };
-const linkStyle = 'inline-flex min-h-11 w-fit items-center rounded-sm text-sm font-medium text-blue-800 underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600';
-const inputStyle = 'mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-blue-600 aria-invalid:border-red-700';
 
 type LoadState = { status: 'loading' | 'ready' } | { status: 'error'; message: string };
 type Field = 'product_id' | 'type' | 'quantity' | 'note';
@@ -213,27 +211,27 @@ function StockMovementForm({ id, storageKey }: { id: number; storageKey: string 
   }
 
   return (
-    <div lang="fr" className="max-w-2xl space-y-4">
+    <div lang="fr" className="page-content max-w-3xl">
       <div className="flex flex-wrap gap-x-5">
-        <Link to={`/products/${id}${search}`} className={linkStyle}>Retour à la fiche produit</Link>
-        <Link to="/stock-movements" className={linkStyle}>Mouvements de stock</Link>
+        <Link to={`/products/${id}${search}`} className="text-link">Retour à la fiche produit</Link>
+        <Link to="/stock-movements" className="text-link">Mouvements de stock</Link>
       </div>
-      <h1 ref={heading} tabIndex={-1} className="text-2xl font-bold">Enregistrer un mouvement</h1>
+      <h1 ref={heading} tabIndex={-1} className="page-title">Enregistrer un mouvement</h1>
       {feedback && <Feedback status={feedback.status} message={feedback.message} />}
       {load.status === 'loading' && <LoadingState message="Chargement du stock disponible…" />}
       {load.status === 'error' && <ErrorState message={load.message} onRetry={reloadProduct} />}
       {product && (
-        <form noValidate onSubmit={(event) => void submit(event)} className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
-          <div className="rounded-lg bg-slate-100 p-3 wrap-anywhere" aria-describedby={errors.product_id?.length ? 'movement-product-error' : undefined}>
+        <form noValidate onSubmit={(event) => void submit(event)} className="panel space-y-5 p-4 sm:p-6">
+          <div className="rounded-lg bg-canvas p-4 wrap-anywhere" aria-describedby={errors.product_id?.length ? 'movement-product-error' : undefined}>
             <h2 className="font-semibold">{product.name}</h2>
-            <p className="text-sm text-slate-700">SKU {product.sku}</p>
+            <p className="text-sm text-muted">SKU {product.sku}</p>
             {load.status === 'ready' && (
               <div role="status" className="mt-2 flex flex-wrap items-center gap-2">
                 <p className="font-semibold tabular-nums">Stock disponible : {numberFormat.format(product.quantity)}</p>
                 <StockStatusBadge product={product} />
               </div>
             )}
-            {!isActive && <p className="mt-2 text-sm text-slate-700">Les entrées et sorties sont indisponibles pour ce produit inactif.</p>}
+            {!isActive && <p className="mt-2 text-sm text-muted">Les entrées et sorties sont indisponibles pour ce produit inactif.</p>}
             <FieldError id="movement-product-error" messages={errors.product_id} />
           </div>
           <fieldset disabled={pending || load.status !== 'ready' || !isActive || Boolean(retry)} className="min-w-0 space-y-4">
@@ -249,7 +247,7 @@ function StockMovementForm({ id, storageKey }: { id: number; storageKey: string 
                 }}
                 aria-invalid={Boolean(errors.type?.length)}
                 aria-describedby={errors.type?.length ? 'movement-type-error' : undefined}
-                className={inputStyle}
+                className="field-control mt-1"
               >
                 <option value="in">Entrée (IN)</option>
                 <option value="out">Sortie (OUT)</option>
@@ -266,7 +264,7 @@ function StockMovementForm({ id, storageKey }: { id: number; storageKey: string 
                 onChange={(event) => { setQuantity(event.target.value); clearFieldError('quantity'); }}
                 aria-invalid={Boolean(errors.quantity?.length)}
                 aria-describedby={errors.quantity?.length ? 'movement-quantity-error' : undefined}
-                className={inputStyle}
+                className="field-control mt-1"
               />
               <FieldError id="movement-quantity-error" messages={errors.quantity} />
             </div>
@@ -279,7 +277,7 @@ function StockMovementForm({ id, storageKey }: { id: number; storageKey: string 
                 onChange={(event) => { setNote(event.target.value); clearFieldError('note'); }}
                 aria-invalid={Boolean(errors.note?.length)}
                 aria-describedby={errors.note?.length ? 'movement-note-error' : undefined}
-                className={inputStyle}
+                className="field-control mt-1"
               />
               <FieldError id="movement-note-error" messages={errors.note} />
             </div>
@@ -306,7 +304,7 @@ export default function StockMovementPage() {
     return (
       <EmptyState
         title="Produit introuvable"
-        action={<Link to="/products" className={linkStyle}>Choisir un produit</Link>}
+        action={<Link to="/products" className="text-link">Choisir un produit</Link>}
       />
     );
   }

@@ -24,8 +24,6 @@ type Field = (typeof createFields)[number]['name'];
 type FieldErrors = Partial<Record<Field, string[]>>;
 type FormValues = Record<Field, string>;
 
-const inputStyle = 'mt-1 min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-blue-600 aria-invalid:border-red-700';
-
 interface UserFormProps {
   employee?: Employee;
   runMutation: (request: () => Promise<unknown>) => Promise<void>;
@@ -175,7 +173,7 @@ export default function UserForm({ employee, runMutation, onSaved, onCancel }: U
       noValidate
       aria-labelledby="user-form-heading"
       onSubmit={(event) => void submit(event)}
-      className="max-w-2xl space-y-4 rounded-xl border border-slate-200 bg-white p-4 sm:p-6"
+      className="max-w-2xl panel space-y-5 p-4 sm:p-6"
     >
       <h2 id="user-form-heading" ref={heading} tabIndex={-1} className="text-lg font-semibold">
         {employee ? 'Modifier le compte employé' : 'Créer un utilisateur'}
@@ -197,7 +195,7 @@ export default function UserForm({ employee, runMutation, onSaved, onCancel }: U
               name: field.name,
               value: values[field.name],
               required: true,
-              className: inputStyle,
+              className: 'field-control mt-1',
               'aria-invalid': Boolean(errorId),
               'aria-describedby': [passwordHint, errorId].filter(Boolean).join(' ') || undefined,
             };
@@ -217,7 +215,7 @@ export default function UserForm({ employee, runMutation, onSaved, onCancel }: U
                     onChange={(event) => change(field.name, event.target.value)}
                   />
                 )}
-                {passwordHint && <p id={passwordHint} className="mt-1 text-sm text-slate-600">12 caractères minimum.</p>}
+                {passwordHint && <p id={passwordHint} className="mt-1 text-sm text-muted">12 caractères minimum.</p>}
                 <FieldError id={`${id}-error`} messages={messages} />
               </div>
             );

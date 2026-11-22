@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
+import { ArrowDownLeft, ArrowRight, ArrowUpRight, Boxes, CircleAlert, Package, TriangleAlert } from 'lucide-react';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import LoadingState from '../components/LoadingState';
@@ -16,10 +17,10 @@ const errorMessages = {
 const numberFormat = new Intl.NumberFormat('fr-FR');
 const dateFormat = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
 const indicators = [
-  { key: 'total_products', label: 'Références produits', color: 'text-slate-900' },
-  { key: 'total_units', label: 'Unités en stock', color: 'text-slate-900' },
-  { key: 'low_stock_count', label: 'Références en stock faible', color: 'text-amber-800' },
-  { key: 'out_of_stock_count', label: 'Références en rupture', color: 'text-red-800' },
+  { key: 'total_products', label: 'Références produits', icon: Package, tone: 'bg-brand-tint text-brand' },
+  { key: 'total_units', label: 'Unités en stock', icon: Boxes, tone: 'bg-zinc-100 text-ink' },
+  { key: 'low_stock_count', label: 'Références en stock faible', icon: TriangleAlert, tone: 'bg-amber-50 text-amber-800' },
+  { key: 'out_of_stock_count', label: 'Références en rupture', icon: CircleAlert, tone: 'bg-red-50 text-red-800' },
 ] as const;
 
 type DashboardState =
@@ -32,35 +33,38 @@ function MovementItem({ movement }: { movement: DashboardMovement }) {
   const isEntry = movement.type === 'in';
 
   return (
-    <li className="grid min-w-0 gap-3 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-start sm:px-5">
+    <li className="grid min-w-0 gap-3 px-4 py-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,5fr)] sm:items-start sm:px-5">
       <div className="min-w-0 wrap-anywhere">
         <h3 className="font-semibold">{movement.product.name}</h3>
-        <p className="text-sm text-slate-600">SKU {movement.product.sku}</p>
+        <p className="text-sm text-muted">SKU {movement.product.sku}</p>
       </div>
-      <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
+      <dl className="grid grid-cols-2 items-start gap-x-3 gap-y-2 text-sm md:grid-cols-[7rem_4.25rem_minmax(0,1fr)_minmax(0,1fr)]">
         <div>
           <dt className="sr-only">Type</dt>
           <dd>
-            <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-medium ${isEntry
-              ? 'bg-blue-50 text-blue-800'
-              : 'bg-violet-50 text-violet-800'}`}
+            <span className={`badge ${isEntry
+              ? 'bg-emerald-50 text-emerald-800'
+              : 'bg-zinc-100 text-zinc-800'}`}
             >
+              {isEntry
+                ? <ArrowDownLeft aria-hidden="true" className="size-3.5 shrink-0" />
+                : <ArrowUpRight aria-hidden="true" className="size-3.5 shrink-0" />}
               {isEntry ? 'Entrée (IN)' : 'Sortie (OUT)'}
             </span>
           </dd>
         </div>
         <div className="min-w-0 wrap-anywhere">
-          <dt className="text-slate-600">Quantité</dt>
+          <dt className="text-muted">Quantité</dt>
           <dd className="font-semibold tabular-nums">{numberFormat.format(movement.quantity)}</dd>
         </div>
         <div className="min-w-0 wrap-anywhere">
-          <dt className="text-slate-600">Date</dt>
+          <dt className="text-muted">Date</dt>
           <dd>{date && Number.isFinite(date.getTime())
             ? <time dateTime={date.toISOString()}>{dateFormat.format(date)}</time>
             : 'Non renseignée'}</dd>
         </div>
         <div className="min-w-0 wrap-anywhere">
-          <dt className="text-slate-600">Enregistré par</dt>
+          <dt className="text-muted">Enregistré par</dt>
           <dd>{movement.user.name}</dd>
         </div>
       </dl>
@@ -69,7 +73,7 @@ function MovementItem({ movement }: { movement: DashboardMovement }) {
 }
 
 export default function Dashboard() {
-  const { expireSession } = useAuth();
+  const { expireSession, session } = useAuth();
   const heading = useRef<HTMLHeadingElement>(null);
   const [state, setState] = useState<DashboardState>({ status: 'loading' });
   const [loadAttempt, setLoadAttempt] = useState(0);
@@ -110,37 +114,47 @@ export default function Dashboard() {
   }
 
   return (
-    <div lang="fr" className="max-w-5xl space-y-6">
-      <h1 ref={heading} tabIndex={-1} className="text-2xl font-bold">Dashboard StockFlow</h1>
+    <div lang="fr" className="page-content">
+      <div>
+        <h1 ref={heading} tabIndex={-1} className="page-title">Tableau de bord</h1>
+        {session.status === 'authenticated' && (
+          <p className="mt-1.5 text-sm wrap-anywhere text-muted">Bienvenue, {session.user.name}.</p>
+        )}
+      </div>
       {state.status === 'loading' && <LoadingState message="Chargement du tableau de bord…" />}
       {state.status === 'error' && <ErrorState message={state.message} onRetry={retry} />}
       {state.status === 'ready' && (
         <>
-          <dl className="grid gap-3 min-[420px]:grid-cols-2 xl:grid-cols-4">
-            {indicators.map(({ key, label, color }) => (
-              <div key={key} className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 wrap-anywhere">
-                <dt className="text-sm font-medium text-slate-700">{label}</dt>
-                <dd className={`mt-2 text-3xl font-semibold tracking-tight tabular-nums ${color}`}>
+          <dl className="grid gap-3 min-[360px]:grid-cols-2 min-[75rem]:grid-cols-4">
+            {indicators.map(({ key, label, icon: Icon, tone }) => (
+              <div key={key} className="panel grid min-w-0 grid-rows-[1fr_auto] gap-2 p-4 wrap-anywhere sm:p-5">
+                <dt className="flex flex-col gap-2 text-sm font-medium text-muted">
+                  <span className={`grid size-9 place-items-center rounded-lg ${tone}`} aria-hidden="true">
+                    <Icon className="size-[18px]" />
+                  </span>
+                  {label}
+                </dt>
+                <dd className="text-3xl font-bold tracking-tight tabular-nums">
                   {numberFormat.format(state.stats[key])}
                 </dd>
               </div>
             ))}
           </dl>
-          <section aria-labelledby="dashboard-movements-heading" className="space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-x-4">
+          <section aria-labelledby="dashboard-movements-heading" className="panel">
+            <div className="flex flex-wrap items-center justify-between gap-x-4 border-b border-line px-4 py-2 sm:px-5">
               <h2 id="dashboard-movements-heading" className="text-lg font-semibold">Mouvements récents</h2>
               <Link
                 to="/stock-movements"
-                className="inline-flex min-h-11 items-center rounded-sm text-sm font-medium text-blue-800 underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                className="text-link"
               >
-                Voir l’historique
+                Voir l’historique <ArrowRight aria-hidden="true" className="size-4" />
               </Link>
             </div>
             {state.stats.recent_movements.length > 0 ? (
-              <ol role="list" className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+              <ol role="list" className="divide-y divide-line">
                 {state.stats.recent_movements.map((movement) => <MovementItem key={movement.id} movement={movement} />)}
               </ol>
-            ) : <EmptyState title="Aucun mouvement de stock enregistré" />}
+            ) : <EmptyState title="Aucun mouvement de stock enregistré" embedded />}
           </section>
         </>
       )}

@@ -78,9 +78,9 @@ export default function Categories() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="page-content">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 ref={headingRef} tabIndex={-1} className="text-2xl font-bold">Catégories</h1>
+        <h1 ref={headingRef} tabIndex={-1} className="page-title">Catégories</h1>
         {isAdmin && (
           <ActionButton
             disabled={state.status !== 'loaded'}
@@ -109,7 +109,7 @@ export default function Categories() {
           <ul
             role="list"
             aria-label="Liste des catégories"
-            className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white"
+            className="panel divide-y divide-line"
           >
             {state.categories.map((category) => (
               <li key={category.id} className="flex items-center justify-between gap-3 px-4 py-3 text-sm font-medium sm:px-6">

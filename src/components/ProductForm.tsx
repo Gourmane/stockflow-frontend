@@ -35,8 +35,6 @@ const saveErrorMessages = {
   422: 'Le serveur a rejeté certaines valeurs. Vérifiez votre saisie.',
 };
 
-const controlStyle = 'min-h-11 w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 aria-invalid:border-red-700';
-
 interface ProductFormProps {
   categories: Category[];
   product?: Product;
@@ -164,7 +162,7 @@ export default function ProductForm({ categories, product, cancelPath, onSaved }
   }
 
   return (
-    <form ref={formRef} noValidate onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
+    <form ref={formRef} noValidate onSubmit={handleSubmit} className="panel space-y-5 p-4 sm:p-6">
       {saveError && <Feedback status="error" message={saveError} />}
       <fieldset disabled={isSaving} className="grid min-w-0 gap-4 sm:grid-cols-2">
         <div className="min-w-0 sm:col-span-2">
@@ -177,7 +175,7 @@ export default function ProductForm({ categories, product, cancelPath, onSaved }
             onChange={clearFieldError}
             aria-invalid={!!fieldErrors.category_id?.length || undefined}
             aria-describedby={fieldErrors.category_id?.length ? 'product-category_id-error' : undefined}
-            className={controlStyle}
+            className="field-control"
           >
             <option value="" disabled>Choisir une catégorie</option>
             {categories.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}
@@ -201,7 +199,7 @@ export default function ProductForm({ categories, product, cancelPath, onSaved }
                 onChange={clearFieldError}
                 aria-invalid={!!messages?.length || undefined}
                 aria-describedby={messages?.length ? errorId : undefined}
-                className={controlStyle}
+                className="field-control"
               />
               <div aria-live="polite"><FieldError id={errorId} messages={messages} /></div>
             </div>
@@ -212,7 +210,7 @@ export default function ProductForm({ categories, product, cancelPath, onSaved }
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
         <Link
           to={cancelPath}
-          className="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+          className="button button-secondary"
         >
           Annuler
         </Link>

@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import ActionButton from '../components/ActionButton';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import LoadingState from '../components/LoadingState';
-import { ProductFacts, ProductStatus } from '../components/ProductFacts';
+import { ProductPrice, ProductStatus } from '../components/ProductFacts';
+import ProductImage from '../components/ProductImage';
+import StockStatusBadge from '../components/StockStatusBadge';
 import { useAuth } from '../context/useAuth';
 import { getAuthErrorMessage } from '../services/authErrors';
 import { productService } from '../services/productService';
@@ -22,23 +25,51 @@ const productErrorMessages = {
   419: 'La vérification de sécurité a échoué. Réessayez.',
 };
 
+const productColumns = ['Produit', 'SKU', 'Catégorie', 'Quantité', 'État du stock', 'Prix unitaire', 'Statut'];
+
 function ProductItem({ product, search }: { product: Product; search: string }) {
   return (
-    <li className="min-w-0 rounded-xl border border-slate-200 bg-white p-4">
-      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
-        <h2 className="min-w-0 text-base font-semibold wrap-anywhere">
-          <Link
-            to={{ pathname: `/products/${product.id}`, search }}
-            className="rounded-sm text-blue-800 underline decoration-blue-300 underline-offset-2 hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-          >
-            {product.name}
-          </Link>
-        </h2>
+    <tr role="row" className="product-row">
+      <th role="rowheader" scope="row" className="col-span-2 text-start">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <ProductImage key={product.image_url} url={product.image_url} />
+          <div className="min-w-0 wrap-anywhere">
+            <Link
+              to={{ pathname: `/products/${product.id}`, search }}
+              className="inline-flex min-h-6 items-center rounded-sm font-semibold text-brand underline decoration-brand/25 underline-offset-3 hover:decoration-current"
+            >
+              {product.name}
+            </Link>
+            <span className="block text-xs font-normal text-muted">{product.brand ?? 'Marque non renseignée'}</span>
+          </div>
+        </div>
+      </th>
+      <td role="cell">
+        <span className="product-cell-label">SKU</span>
+        <span className="font-mono text-xs">{product.sku}</span>
+      </td>
+      <td role="cell">
+        <span className="product-cell-label">Catégorie</span>
+        {product.category.name}
+      </td>
+      <td role="cell">
+        <span className="product-cell-label">Quantité</span>
+        <span className="font-semibold tabular-nums">{product.quantity}</span>
+      </td>
+      <td role="cell">
+        <span className="product-cell-label">État du stock</span>
+        <StockStatusBadge product={product} />
+        <span className="mt-1 block text-xs text-muted">Stock minimum {product.min_stock}</span>
+      </td>
+      <td role="cell">
+        <span className="product-cell-label">Prix unitaire</span>
+        <span className="tabular-nums"><ProductPrice value={product.unit_price} /></span>
+      </td>
+      <td role="cell">
+        <span className="product-cell-label">Statut</span>
         <ProductStatus isActive={product.is_active} />
-      </div>
-
-      <ProductFacts product={product} />
-    </li>
+      </td>
+    </tr>
   );
 }
 
@@ -109,22 +140,25 @@ function ProductList({ page, focusHeading }: { page: number; focusHeading: () =>
       {products.length === 0 ? (
         <EmptyState title="Aucun produit" />
       ) : (
-        <ul
-          role="list"
-          aria-labelledby="products-heading"
-          className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,17rem),1fr))] gap-3"
-        >
-          {products.map((product) => <ProductItem key={product.id} product={product} search={pageSearch(page)} />)}
-        </ul>
+        <table role="table" aria-labelledby="products-heading" className="product-table">
+          <thead role="rowgroup">
+            <tr role="row">
+              {productColumns.map((column) => <th key={column} role="columnheader" scope="col">{column}</th>)}
+            </tr>
+          </thead>
+          <tbody role="rowgroup">
+            {products.map((product) => <ProductItem key={product.id} product={product} search={pageSearch(page)} />)}
+          </tbody>
+        </table>
       )}
-      <nav aria-label="Pagination des produits" className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-slate-700 tabular-nums">Page {currentPage} sur {lastPage}</p>
+      <nav aria-label="Pagination des produits" className="pagination">
+        <p className="text-sm text-muted tabular-nums">Page {currentPage} sur {lastPage}</p>
         <div className="flex flex-wrap gap-2">
           <ActionButton variant="secondary" disabled={currentPage === 1} onClick={() => goToPage(currentPage - 1)}>
-            Précédent
+            <ChevronLeft aria-hidden="true" className="size-4" /> Précédent
           </ActionButton>
           <ActionButton variant="secondary" disabled={currentPage === lastPage} onClick={() => goToPage(currentPage + 1)}>
-            Suivant
+            Suivant <ChevronRight aria-hidden="true" className="size-4" />
           </ActionButton>
         </div>
       </nav>
@@ -142,15 +176,15 @@ export default function Products() {
   const page = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
 
   return (
-    <div lang="fr" className="space-y-4">
+    <div lang="fr" className="page-content">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 ref={headingRef} id="products-heading" tabIndex={-1} className="text-2xl font-bold">Produits</h1>
+        <h1 ref={headingRef} id="products-heading" tabIndex={-1} className="page-title">Produits</h1>
         {isAdmin && (
           <Link
             to={{ pathname: '/products/new', search: pageSearch(page) }}
-            className="inline-flex min-h-11 items-center rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+            className="button button-primary"
           >
-            Ajouter un produit
+            <Plus aria-hidden="true" className="size-4" /> Ajouter un produit
           </Link>
         )}
       </div>

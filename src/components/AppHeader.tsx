@@ -1,4 +1,8 @@
 import { useState } from 'react';
+import { LogOut, UserRound } from 'lucide-react';
+import ActionButton from './ActionButton';
+import Brand from './Brand';
+import Feedback from './Feedback';
 import { useAuth } from '../context/useAuth';
 import { getAuthErrorMessage } from '../services/authErrors';
 
@@ -30,26 +34,27 @@ export default function AppHeader() {
     }
   }
 
+  const initials = session.user.name.trim().split(/\s+/).slice(0, 2)
+    .map((part) => Array.from(part)[0]).join('').toLocaleUpperCase('fr');
+
   return (
-    <header className="border-b border-slate-200 bg-white px-4 py-3 sm:px-6 md:px-8">
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
-        <span className="text-lg font-bold">StockFlow</span>
-        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4">
-          <p className="min-w-0 text-sm font-medium wrap-anywhere">{session.user.name}</p>
-          <span className="text-xs font-medium text-slate-600">
-            {session.user.role === 'admin' ? 'Admin' : 'Employé'}
+    <header className="min-w-0 lg:col-start-2 lg:row-start-1">
+      <div className="bg-ink px-4 py-3 lg:hidden"><Brand /></div>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-white px-4 py-2.5 sm:px-7 lg:justify-end xl:px-9">
+        <div className="flex min-w-0 flex-auto items-center gap-2.5 lg:flex-initial">
+          <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-full bg-brand-tint text-xs font-bold text-brand">
+            {initials || <UserRound className="size-4" />}
           </span>
-          <button
-            type="button"
-            onClick={handleLogout}
-            disabled={loading}
-            className="min-h-11 shrink-0 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50"
-          >
-            {loading ? 'Déconnexion...' : 'Déconnexion'}
-          </button>
+          <div className="min-w-0 wrap-anywhere">
+            <p className="text-sm font-semibold">{session.user.name}</p>
+            <p className="text-xs text-muted">{session.user.role === 'admin' ? 'Administrateur' : 'Employé'}</p>
+          </div>
         </div>
+        <ActionButton variant="secondary" onClick={handleLogout} isPending={loading} pendingLabel="Déconnexion...">
+          <LogOut aria-hidden="true" className="size-4" /> Déconnexion
+        </ActionButton>
       </div>
-      {error && <p role="alert" className="mt-2 text-sm text-red-700">{error}</p>}
+      {error && <div className="px-4 pt-3 sm:px-7 xl:px-9"><Feedback status="error" message={error} /></div>}
     </header>
   );
 }

@@ -47,10 +47,10 @@ export default function ConfirmDialog({
         event.preventDefault();
         if (!isPending) onClose();
       }}
-      className="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-xl bg-white p-5 text-slate-900 shadow-xl backdrop:bg-slate-950/50 sm:p-6"
+      className="ui-dialog"
     >
       <h2 id={titleId} className="text-lg font-semibold wrap-anywhere">{title}</h2>
-      <p id={descriptionId} className="mt-2 text-sm wrap-anywhere text-slate-600">{description}</p>
+      <p id={descriptionId} className="mt-2 text-sm wrap-anywhere text-muted">{description}</p>
       {error && (
         <div className="mt-4">
           <Feedback status="error" message={error} />

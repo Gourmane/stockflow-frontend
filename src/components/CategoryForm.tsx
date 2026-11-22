@@ -104,7 +104,7 @@ export default function CategoryForm({ category, onCancel, onSaved }: CategoryFo
         event.preventDefault();
         cancel();
       }}
-      className="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-xl bg-white p-5 text-slate-900 shadow-xl backdrop:bg-slate-950/50 sm:p-6"
+      className="ui-dialog"
     >
       <h2 id={titleId} className="text-lg font-semibold">
         {category ? 'Modifier la catégorie' : 'Ajouter une catégorie'}
@@ -127,7 +127,7 @@ export default function CategoryForm({ category, onCancel, onSaved }: CategoryFo
               setName(event.target.value);
               setNameErrors([]);
             }}
-            className="min-h-11 w-full rounded-md border border-slate-300 px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 aria-invalid:border-red-700"
+            className="field-control"
           />
           <div aria-live="polite">
             <FieldError id={nameErrorId} messages={nameErrors} />

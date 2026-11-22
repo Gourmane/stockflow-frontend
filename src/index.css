@@ -1,2 +1,205 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --color-ink: #18181b;
+  --color-muted: #5c5b63;
+  --color-canvas: #f6f5f6;
+  --color-line: #e5e2e5;
+  --color-control: #918b93;
+  --color-brand: #920c34;
+  --color-brand-hover: #720824;
+  --color-brand-tint: #fbecf0;
+}
+
+@layer base {
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-3 outline-brand;
+  }
+
+  ::selection {
+    @apply bg-brand-tint text-brand-hover;
+  }
+
+  button:not(:disabled) {
+    @apply cursor-pointer;
+  }
+}
+
+@layer components {
+  .page-content {
+    @apply mx-auto w-full max-w-7xl space-y-5 sm:space-y-6;
+  }
+
+  .page-title {
+    @apply text-2xl font-bold tracking-tight sm:text-3xl;
+  }
+
+  .panel {
+    @apply rounded-xl border border-line bg-white;
+  }
+
+  .field-control {
+    @apply min-h-11 w-full rounded-lg border border-control bg-white px-3 py-2 text-base text-ink caret-brand placeholder:text-muted focus-visible:border-brand focus-visible:outline-offset-1 disabled:bg-canvas aria-invalid:border-red-700 sm:text-sm;
+  }
+
+  .button {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-55 motion-reduce:transition-none;
+  }
+
+  .button-primary {
+    @apply border-transparent bg-brand text-white hover:bg-brand-hover disabled:bg-brand;
+  }
+
+  .button-secondary {
+    @apply border-control bg-white text-ink hover:bg-canvas disabled:bg-white;
+  }
+
+  .button-danger {
+    @apply border-transparent bg-red-700 text-white hover:bg-red-800 disabled:bg-red-700;
+  }
+
+  .text-link {
+    @apply inline-flex min-h-11 w-fit items-center gap-2 rounded-sm text-sm font-semibold text-brand underline decoration-brand/30 underline-offset-4 hover:decoration-current;
+  }
+
+  .pagination {
+    @apply flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-white px-4 py-3 sm:px-5;
+  }
+
+  .badge {
+    @apply inline-flex w-fit max-w-full items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold;
+  }
+
+  .ui-dialog {
+    @apply fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-xl border border-line bg-white p-5 text-ink shadow-lg backdrop:bg-ink/60 sm:p-6;
+  }
+
+  .product-table {
+    @apply w-full border-separate border-spacing-0 text-start text-sm;
+  }
+
+  .product-table thead th {
+    @apply border-b border-line bg-canvas px-3 py-3 text-start text-xs font-semibold text-muted;
+  }
+
+  .product-table thead th:first-child {
+    @apply w-1/4 rounded-tl-xl;
+  }
+
+  .product-table thead th:last-child {
+    @apply rounded-tr-xl;
+  }
+
+  .product-row > :is(th, td) {
+    @apply min-w-0 px-3 py-3 align-middle wrap-anywhere;
+  }
+
+  .product-row:not(:last-child) > :is(th, td) {
+    @apply border-b border-line;
+  }
+
+  .product-cell-label {
+    @apply hidden;
+  }
+
+  .login-layout {
+    @apply relative isolate grid min-h-dvh grid-rows-[auto_auto_1fr] bg-canvas lg:grid-cols-[minmax(0,1.14fr)_minmax(0,1fr)] lg:grid-rows-[1fr_auto];
+  }
+
+  .login-backdrop {
+    @apply absolute inset-0 -z-10 bg-ink lg:right-auto lg:w-[53.27%];
+    background-image: linear-gradient(90deg, #18181b 6%, #18181be8 47%, #18181b55 100%), url("./assets/stockroom.jpg");
+    background-position: center, center 54%;
+    background-size: cover;
+  }
+
+  .login-intro {
+    @apply px-5 pb-14 pt-6 text-white sm:px-10 lg:col-start-1 lg:row-start-1 lg:flex lg:flex-col lg:items-start lg:px-[clamp(2.5rem,5.3vw,6rem)] lg:pb-10 lg:pt-12;
+  }
+
+  .login-intro-copy {
+    @apply mt-5 lg:my-auto lg:py-12;
+  }
+
+  .login-intro-copy h2 {
+    @apply max-w-[19ch] text-[clamp(1.75rem,5vw,2.5rem)] leading-[1.07] font-bold tracking-tight lg:text-[clamp(3.25rem,4.5vw,5rem)];
+  }
+
+  .login-intro-copy h2 span {
+    @apply block text-rose-400;
+  }
+
+  .login-main {
+    @apply -mt-6 flex min-w-0 justify-center px-4 sm:px-8 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:items-center lg:bg-white lg:px-12 lg:py-10;
+  }
+
+  .login-card {
+    @apply w-full max-w-[27rem] rounded-xl border border-line bg-white p-5 sm:p-8 lg:rounded-none lg:border-0 lg:p-0;
+  }
+
+  .login-label {
+    @apply mb-2 flex items-center gap-2 text-sm font-semibold;
+  }
+
+  .login-credit {
+    @apply mx-auto w-full max-w-[27rem] self-start px-5 py-5 text-muted lg:col-start-1 lg:row-start-2 lg:mx-0 lg:max-w-none lg:px-[clamp(2.5rem,5.3vw,6rem)] lg:pb-10 lg:text-zinc-200;
+  }
+
+  .demo-role {
+    @apply flex items-center gap-2 rounded-lg border border-line bg-canvas px-2.5 py-2 text-xs font-semibold sm:px-3 sm:text-sm;
+  }
+
+  .demo-role svg {
+    @apply size-4 shrink-0 text-brand;
+  }
+}
+
+@media (width >= 72rem) {
+  .product-table {
+    @apply rounded-xl border border-line bg-white;
+  }
+
+  .product-row:hover {
+    @apply bg-brand-tint/25;
+  }
+}
+
+@media (width < 72rem) {
+  .product-table thead {
+    @apply sr-only;
+  }
+
+  .product-table,
+  .product-table tbody {
+    @apply block;
+  }
+
+  .product-table tbody {
+    @apply grid gap-3 sm:grid-cols-2;
+  }
+
+  .product-row {
+    @apply grid min-w-0 grid-cols-2 content-start gap-x-3 gap-y-3 rounded-xl border border-line bg-white p-4;
+  }
+
+  .product-row > :is(th, td),
+  .product-row:not(:last-child) > :is(th, td) {
+    @apply border-0 p-0;
+  }
+
+  .product-cell-label {
+    @apply mb-1 block text-xs font-medium text-muted;
+  }
+}
+
+@media (width < 64rem) {
+  .login-backdrop {
+    grid-row: 1 / 2;
+  }
+}
+

@@ -32,37 +32,37 @@ function HistoryItem({ movement }: { movement: StockMovementHistoryItem }) {
   const isEntry = movement.type === 'in';
 
   return (
-    <li className="min-w-0 space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+    <li className="min-w-0 space-y-3 p-4 sm:px-5">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0 wrap-anywhere">
           <h2 className="font-semibold">{movement.product.name}</h2>
-          <p className="text-sm text-slate-600">SKU {movement.product.sku}</p>
+          <p className="text-sm text-muted">SKU {movement.product.sku}</p>
         </div>
-        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${isEntry
-          ? 'bg-blue-50 text-blue-800'
-          : 'bg-violet-50 text-violet-800'}`}
+        <span className={`badge ${isEntry
+          ? 'bg-emerald-50 text-emerald-800'
+          : 'bg-zinc-100 text-zinc-800'}`}
         >
           {isEntry ? 'Entrée (IN)' : 'Sortie (OUT)'}
         </span>
       </div>
-      <dl className="grid grid-cols-2 gap-3 border-t border-slate-200 pt-3 text-sm sm:grid-cols-3">
+      <dl className="grid grid-cols-2 gap-3 border-t border-line pt-3 text-sm sm:grid-cols-3">
         <div className="min-w-0 wrap-anywhere">
-          <dt className="text-slate-600">Date</dt>
+          <dt className="text-muted">Date</dt>
           <dd>{date && Number.isFinite(date.getTime())
             ? <time dateTime={date.toISOString()}>{dateFormat.format(date)}</time>
             : 'Non renseignée'}</dd>
         </div>
         <div className="min-w-0 wrap-anywhere">
-          <dt className="text-slate-600">Quantité</dt>
+          <dt className="text-muted">Quantité</dt>
           <dd className="font-semibold tabular-nums">{numberFormat.format(movement.quantity)}</dd>
         </div>
         <div className="col-span-2 min-w-0 wrap-anywhere sm:col-span-1">
-          <dt className="text-slate-600">Enregistré par</dt>
+          <dt className="text-muted">Enregistré par</dt>
           <dd>{movement.user.name}</dd>
         </div>
         {movement.note && (
           <div className="col-span-full min-w-0">
-            <dt className="text-slate-600">Note</dt>
+            <dt className="text-muted">Note</dt>
             <dd className="whitespace-pre-wrap wrap-anywhere">{movement.note}</dd>
           </div>
         )}
@@ -119,12 +119,12 @@ function HistoryList({ page, focusHeading }: { page: number; focusHeading: () =>
   return (
     <>
       {movements.length ? (
-        <ol role="list" aria-labelledby="stock-movements-heading" className="space-y-3">
+        <ol role="list" aria-labelledby="stock-movements-heading" className="panel divide-y divide-line">
           {movements.map((movement) => <HistoryItem key={movement.id} movement={movement} />)}
         </ol>
       ) : <EmptyState title="Aucun mouvement sur cette page" />}
-      <nav aria-label="Pagination des mouvements" className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-slate-700 tabular-nums">Page {currentPage} sur {lastPage}</p>
+      <nav aria-label="Pagination des mouvements" className="pagination">
+        <p className="text-sm text-muted tabular-nums">Page {currentPage} sur {lastPage}</p>
         <div className="flex flex-wrap gap-2">
           <ActionButton variant="secondary" disabled={currentPage === 1} onClick={() => void navigate(historyPath(currentPage - 1))}>
             Précédent
@@ -150,12 +150,12 @@ export default function StockMovements() {
   }, [page]);
 
   return (
-    <div lang="fr" className="max-w-3xl space-y-4">
+    <div lang="fr" className="page-content">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 id="stock-movements-heading" ref={heading} tabIndex={-1} className="text-2xl font-bold">Mouvements de stock</h1>
+        <h1 id="stock-movements-heading" ref={heading} tabIndex={-1} className="page-title">Mouvements de stock</h1>
         <Link
           to="/products"
-          className="inline-flex min-h-11 items-center rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+          className="button button-primary"
         >
           Choisir un produit
         </Link>
