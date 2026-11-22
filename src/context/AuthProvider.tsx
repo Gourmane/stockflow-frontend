@@ -1,13 +1,13 @@
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 
-import { ApiConfigurationError } from '../api/axios';
+import { ApiConfigurationError, watchSessionExpiry } from '../api/axios';
 import { AuthContext } from './authContext';
 import type { AuthSession } from './authContext';
 import { getAuthErrorMessage, getHttpStatus } from '../services/authErrors';
 import { authService } from '../services/authService';
-import type { LoginCredentials } from '../types/auth';
+import type { LoginCredentials, User } from '../types/auth';
 
 const sessionErrorMessages = {
   419: 'La vérification de sécurité a échoué. Réessayez.',
@@ -34,10 +34,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<AuthSession>({ status: 'checking' });
   const [checkAttempt, setCheckAttempt] = useState(0);
 
-  const expireSession = useCallback(() => {
-    setSession((current) => current.status === 'authenticated'
-      ? { status: 'anonymous', notice: 'Votre session a expiré. Veuillez vous reconnecter.' }
-      : current);
+  const stopWatching = useRef<(() => void) | undefined>(undefined);
+
+  const establishSession = useCallback((user: User) => {
+    stopWatching.current = watchSessionExpiry(() => {
+      stopWatching.current = undefined;
+      setSession({ status: 'anonymous', notice: 'Votre session a expiré. Veuillez vous reconnecter.' });
+    });
+    setSession({ status: 'authenticated', user });
   }, []);
 
   useEffect(() => {
@@ -46,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async function restoreSession() {
       try {
         const { user } = await authService.me();
-        if (active) setSession({ status: 'authenticated', user });
+        if (active) establishSession(user);
       } catch (error) {
         if (active) setSession(failedSessionCheck(error));
       }
@@ -56,8 +60,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       active = false;
+      stopWatching.current?.();
+      stopWatching.current = undefined;
     };
-  }, [checkAttempt]);
+  }, [checkAttempt, establishSession]);
 
   function retrySession() {
     if (session.status !== 'unavailable' || !session.retryable) return;
@@ -70,19 +76,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       const { user } = await authService.me();
-      setSession({ status: 'authenticated', user });
+      establishSession(user);
     } catch (error) {
       setSession(failedSessionCheck(error, 'La session n’a pas pu être ouverte. Réessayez de vous connecter.'));
     }
   }
 
   async function logout(): Promise<void> {
+    const endSession = stopWatching.current;
     await authService.logout();
+    if (stopWatching.current !== endSession) return;
+
+    endSession?.();
+    stopWatching.current = undefined;
     setSession({ status: 'anonymous' });
   }
 
   return (
-    <AuthContext.Provider value={{ session, retrySession, expireSession, login, logout }}>
+    <AuthContext.Provider value={{ session, retrySession, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

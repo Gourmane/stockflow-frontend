@@ -122,3 +122,29 @@ it('retries an uncertain result with exactly the original movement payload', asy
   expect(submissions[1]).toEqual(submissions[0])
   expect(submissions[1].idempotency_key).toMatch(uuid)
 })
+
+it.each([401, 409])('does not replay a stock movement rejected with HTTP %i', async (status) => {
+  const user = userEvent.setup()
+  const request = mockApi(({ url, method }) => {
+    if (url === '/me') return ok({ user: employee })
+    if (url === '/products/12') return ok({ data: product })
+    if (method === 'post' && url === '/stock-movements') return { status, data: null }
+    throw new Error('Unexpected endpoint: ' + url)
+  })
+
+  renderRoute(route)
+  await user.type(await screen.findByLabelText('Quantité'), '3')
+  await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+  if (status === 401) {
+    await screen.findByRole('button', { name: 'Se connecter' })
+  } else {
+    await screen.findByText(/cette clé correspond déjà à un autre mouvement/i)
+    expect(screen.getByRole('button', { name: 'Déconnexion' })).toBeDefined()
+    expect(screen.queryByRole('button', { name: 'Réessayer ce mouvement' })).toBeNull()
+  }
+  expect(request.mock.calls.map(([config]) => [config.method, config.url])).toEqual([
+    ['get', '/me'], ['get', '/products/12'], ['post', '/stock-movements'],
+  ])
+  expect(sessionStorage.length).toBe(0)
+})

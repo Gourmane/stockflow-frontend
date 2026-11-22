@@ -3,8 +3,7 @@ import { Link } from 'react-router';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import LoadingState from '../components/LoadingState';
-import { useAuth } from '../context/useAuth';
-import { getAuthErrorMessage, getHttpStatus } from '../services/authErrors';
+import { getAuthErrorMessage } from '../services/authErrors';
 import { dashboardService } from '../services/dashboardService';
 import type { DashboardMovement, DashboardStats } from '../types/dashboard';
 
@@ -69,7 +68,6 @@ function MovementItem({ movement }: { movement: DashboardMovement }) {
 }
 
 export default function Dashboard() {
-  const { expireSession } = useAuth();
   const heading = useRef<HTMLHeadingElement>(null);
   const [state, setState] = useState<DashboardState>({ status: 'loading' });
   const [loadAttempt, setLoadAttempt] = useState(0);
@@ -86,10 +84,6 @@ export default function Dashboard() {
         if (!signal.aborted) setState({ status: 'ready', stats });
       } catch (error) {
         if (signal.aborted) return;
-        if (getHttpStatus(error) === 401) {
-          expireSession();
-          return;
-        }
         setState({
           status: 'error',
           message: getAuthErrorMessage(error, errorMessages, 'Impossible de charger le tableau de bord.'),
@@ -101,7 +95,7 @@ export default function Dashboard() {
       if (!signal.aborted) void loadDashboard();
     });
     return () => controller.abort();
-  }, [expireSession, loadAttempt]);
+  }, [loadAttempt]);
 
   function retry() {
     heading.current?.focus();
