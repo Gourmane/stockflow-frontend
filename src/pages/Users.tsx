@@ -8,7 +8,6 @@ import Feedback from '../components/Feedback';
 import LoadingState from '../components/LoadingState';
 import UserAvatar from '../components/UserAvatar';
 import UserForm from '../components/UserForm';
-import { useAuth } from '../context/useAuth';
 import { getHttpStatus } from '../services/authErrors';
 import { authService } from '../services/authService';
 import { getUserErrorMessage } from '../services/userErrors';
@@ -23,7 +22,6 @@ type Editor = { mode: 'create' } | { mode: 'edit'; employee: Employee };
 type Notice = { status: 'success' | 'error'; message: string };
 
 export default function Users() {
-  const { expireSession } = useAuth();
   const heading = useRef<HTMLHeadingElement>(null);
   const mounted = useRef(false);
   const refreshCsrf = useRef(false);
@@ -53,10 +51,6 @@ export default function Users() {
         if (!signal.aborted) setList({ status: 'ready', employees: data });
       } catch (error) {
         if (signal.aborted) return;
-        if (getHttpStatus(error) === 401) {
-          expireSession();
-          return;
-        }
         setList({
           status: 'error',
           message: getUserErrorMessage(error, 'Impossible de charger les comptes employés.'),
@@ -68,7 +62,7 @@ export default function Users() {
       if (!signal.aborted) void loadEmployees();
     });
     return () => controller.abort();
-  }, [expireSession, loadAttempt]);
+  }, [loadAttempt]);
 
   function reloadList() {
     setList({ status: 'loading' });
@@ -83,11 +77,7 @@ export default function Users() {
       }
       await request();
     } catch (error) {
-      if (mounted.current) {
-        const status = getHttpStatus(error);
-        if (status === 401) expireSession();
-        if (status === 419) refreshCsrf.current = true;
-      }
+      if (mounted.current && getHttpStatus(error) === 419) refreshCsrf.current = true;
       throw error;
     }
   }

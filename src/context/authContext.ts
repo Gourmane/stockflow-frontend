@@ -10,7 +10,6 @@ export type AuthSession =
 export interface AuthContextType {
   session: AuthSession;
   retrySession: () => void;
-  expireSession: () => void;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => Promise<void>;
 }

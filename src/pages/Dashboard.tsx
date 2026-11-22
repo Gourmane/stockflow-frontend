@@ -6,7 +6,7 @@ import ErrorState from '../components/ErrorState';
 import LoadingState from '../components/LoadingState';
 import MovementTable from '../components/MovementTable';
 import { useAuth } from '../context/useAuth';
-import { getAuthErrorMessage, getHttpStatus } from '../services/authErrors';
+import { getAuthErrorMessage } from '../services/authErrors';
 import { dashboardService } from '../services/dashboardService';
 import type { DashboardStats } from '../types/dashboard';
 
@@ -29,7 +29,7 @@ type DashboardState =
   | { status: 'error'; message: string };
 
 export default function Dashboard() {
-  const { expireSession, session } = useAuth();
+  const { session } = useAuth();
   const heading = useRef<HTMLHeadingElement>(null);
   const [state, setState] = useState<DashboardState>({ status: 'loading' });
   const [loadAttempt, setLoadAttempt] = useState(0);
@@ -46,10 +46,6 @@ export default function Dashboard() {
         if (!signal.aborted) setState({ status: 'ready', stats });
       } catch (error) {
         if (signal.aborted) return;
-        if (getHttpStatus(error) === 401) {
-          expireSession();
-          return;
-        }
         setState({
           status: 'error',
           message: getAuthErrorMessage(error, errorMessages, 'Impossible de charger le tableau de bord.'),
@@ -61,7 +57,7 @@ export default function Dashboard() {
       if (!signal.aborted) void loadDashboard();
     });
     return () => controller.abort();
-  }, [expireSession, loadAttempt]);
+  }, [loadAttempt]);
 
   function retry() {
     heading.current?.focus();
