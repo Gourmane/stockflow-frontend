@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { Pencil, UserRoundPlus } from 'lucide-react';
 import ActionButton from '../components/ActionButton';
 import ConfirmDialog from '../components/ConfirmDialog';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import Feedback from '../components/Feedback';
 import LoadingState from '../components/LoadingState';
+import UserAvatar from '../components/UserAvatar';
 import UserForm from '../components/UserForm';
 import { useAuth } from '../context/useAuth';
 import { getHttpStatus } from '../services/authErrors';
@@ -128,11 +130,11 @@ export default function Users() {
 
   return (
     <div lang="fr" className="page-content">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="page-heading">
         <h1 ref={heading} tabIndex={-1} className="page-title">Utilisateurs</h1>
         {list.status === 'ready' && !editor && (
           <ActionButton disabled={statusPending} onClick={() => openEditor({ mode: 'create' })}>
-            Créer un utilisateur
+            <UserRoundPlus aria-hidden="true" className="size-4" /> Créer un utilisateur
           </ActionButton>
         )}
       </div>
@@ -152,58 +154,81 @@ export default function Users() {
           {list.status === 'loading' && <LoadingState message="Chargement des comptes employés…" />}
           {list.status === 'error' && <ErrorState message={list.message} onRetry={reloadList} />}
           {list.status === 'ready' && (
-            <section aria-labelledby="employee-list-heading" className="space-y-3">
-              <div>
-                <h2 id="employee-list-heading" className="text-lg font-semibold">Comptes employés</h2>
+            <section aria-labelledby="employee-list-heading" className="panel">
+              <div className="border-b border-line px-3 py-3 sm:px-4">
+                <h2 id="employee-list-heading" className="font-bold">Comptes employés</h2>
                 <p className="mt-1 text-sm text-muted">
-                  Vous pouvez créer un Admin ou un employé. La modification et le changement de statut sont réservés aux comptes employés.
+                  Vous pouvez créer un compte administrateur ou employé. Seuls les comptes employés peuvent être modifiés, activés ou désactivés ici.
                 </p>
               </div>
-              {list.employees.length === 0 ? <EmptyState title="Aucun compte employé" /> : (
-                <ul role="list" className="panel divide-y divide-line">
-                  {list.employees.map((employee) => (
-                    <li key={employee.id} className="flex flex-wrap items-center justify-between gap-3 p-4 sm:px-5">
-                      <div className="min-w-0 max-w-full space-y-1 wrap-anywhere">
-                        <h3 className="font-semibold">{employee.name}</h3>
-                        <p className="text-sm text-muted">{employee.email}</p>
-                        <div className="flex flex-wrap items-center gap-2 text-sm">
-                          <span>{employee.role === 'employee' ? 'Employé' : 'Admin'}</span>
+              {list.employees.length === 0 ? <EmptyState title="Aucun compte employé" embedded /> : (
+                <table role="table" aria-labelledby="employee-list-heading" className="ledger-table ledger-table--stack">
+                  <thead role="rowgroup">
+                    <tr role="row">
+                      <th role="columnheader" scope="col" className="w-[42%]">Nom / email</th>
+                      <th role="columnheader" scope="col">Rôle</th>
+                      <th role="columnheader" scope="col">Statut</th>
+                      <th role="columnheader" scope="col" className="cell-end">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody role="rowgroup">
+                    {list.employees.map((employee) => (
+                      <tr key={employee.id} role="row">
+                        <th role="rowheader" scope="row" className="col-span-2">
+                          <div className="flex min-w-0 items-center gap-2.5">
+                            <UserAvatar name={employee.name} />
+                            <div className="min-w-0">
+                              <span className="block">{employee.name}</span>
+                              <span className="block text-xs font-normal text-muted">{employee.email}</span>
+                            </div>
+                          </div>
+                        </th>
+                        <td role="cell">
+                          <span aria-hidden="true" className="ledger-label">Rôle</span>
+                          {employee.role === 'employee' ? 'Employé' : 'Administrateur'}
+                        </td>
+                        <td role="cell">
+                          <span aria-hidden="true" className="ledger-label">Statut</span>
                           <span className={`badge ${employee.is_active
                             ? 'bg-emerald-50 text-emerald-800'
                             : 'bg-zinc-100 text-muted'}`}
                           >
                             {employee.is_active ? 'Actif' : 'Inactif'}
                           </span>
-                        </div>
-                      </div>
-                      {employee.role === 'employee' && (
-                        <div className="flex flex-wrap gap-2">
-                          <ActionButton
-                            variant="secondary"
-                            disabled={statusPending}
-                            aria-label={`Modifier ${employee.name}`}
-                            onClick={() => openEditor({ mode: 'edit', employee })}
-                          >
-                            Modifier
-                          </ActionButton>
-                          <ActionButton
-                            variant="secondary"
-                            disabled={statusPending}
-                            aria-label={`${employee.is_active ? 'Désactiver' : 'Activer'} ${employee.name}`}
-                            onClick={() => {
-                              if (employee.is_active) {
-                                setStatusError('');
-                                setEmployeeToDeactivate(employee);
-                              } else void changeStatus(employee);
-                            }}
-                          >
-                            {employee.is_active ? 'Désactiver' : 'Activer'}
-                          </ActionButton>
-                        </div>
-                      )}
-                    </li>
-                  ))}
-                </ul>
+                        </td>
+                        <td role="cell" className="col-span-2">
+                          {employee.role === 'employee' && (
+                            <div className="flex flex-wrap gap-1 lg:justify-end">
+                              <ActionButton
+                                variant="quiet"
+                                className="button-compact"
+                                disabled={statusPending}
+                                aria-label={`Modifier ${employee.name}`}
+                                onClick={() => openEditor({ mode: 'edit', employee })}
+                              >
+                                <Pencil aria-hidden="true" className="size-3.5" /> Modifier
+                              </ActionButton>
+                              <ActionButton
+                                variant="quiet"
+                                className={`button-compact ${employee.is_active ? 'text-brand hover:bg-brand-tint' : 'text-emerald-800 hover:bg-emerald-50'}`}
+                                disabled={statusPending}
+                                aria-label={`${employee.is_active ? 'Désactiver' : 'Activer'} ${employee.name}`}
+                                onClick={() => {
+                                  if (employee.is_active) {
+                                    setStatusError('');
+                                    setEmployeeToDeactivate(employee);
+                                  } else void changeStatus(employee);
+                                }}
+                              >
+                                {employee.is_active ? 'Désactiver' : 'Activer'}
+                              </ActionButton>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               )}
             </section>
           )}

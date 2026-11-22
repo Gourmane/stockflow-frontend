@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
-import ActionButton from '../components/ActionButton';
+import { Plus } from 'lucide-react';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import LoadingState from '../components/LoadingState';
+import LedgerPagination from '../components/LedgerPagination';
 import { ProductPrice, ProductStatus } from '../components/ProductFacts';
 import ProductImage from '../components/ProductImage';
 import StockStatusBadge from '../components/StockStatusBadge';
@@ -25,18 +25,26 @@ const productErrorMessages = {
   419: 'La vérification de sécurité a échoué. Réessayez.',
 };
 
-const productColumns = ['Produit', 'SKU', 'Catégorie', 'Quantité', 'État du stock', 'Prix unitaire', 'Statut'];
+const productColumns = [
+  { label: 'Produit', className: 'w-[27%]' },
+  { label: 'SKU' },
+  { label: 'Catégorie' },
+  { label: 'Quantité', className: 'cell-end' },
+  { label: 'État du stock' },
+  { label: 'Prix unitaire', className: 'cell-end' },
+  { label: 'Statut' },
+];
 
 function ProductItem({ product, search }: { product: Product; search: string }) {
   return (
-    <tr role="row" className="product-row">
+    <tr role="row">
       <th role="rowheader" scope="row" className="col-span-2 text-start">
         <div className="flex min-w-0 items-center gap-2.5">
           <ProductImage key={product.image_url} url={product.image_url} />
           <div className="min-w-0 wrap-anywhere">
             <Link
               to={{ pathname: `/products/${product.id}`, search }}
-              className="inline-flex min-h-6 items-center rounded-sm font-semibold text-brand underline decoration-brand/25 underline-offset-3 hover:decoration-current"
+              className="inline-flex min-h-6 items-center rounded-sm font-semibold text-ink underline decoration-brand/40 underline-offset-3 hover:text-brand hover:decoration-current"
             >
               {product.name}
             </Link>
@@ -45,28 +53,28 @@ function ProductItem({ product, search }: { product: Product; search: string }) 
         </div>
       </th>
       <td role="cell">
-        <span className="product-cell-label">SKU</span>
-        <span className="font-mono text-xs">{product.sku}</span>
+        <span aria-hidden="true" className="ledger-label">SKU</span>
+        <span className="font-mono text-xs text-muted">{product.sku}</span>
       </td>
       <td role="cell">
-        <span className="product-cell-label">Catégorie</span>
+        <span aria-hidden="true" className="ledger-label">Catégorie</span>
         {product.category.name}
       </td>
-      <td role="cell">
-        <span className="product-cell-label">Quantité</span>
+      <td role="cell" className="cell-end">
+        <span aria-hidden="true" className="ledger-label">Quantité</span>
         <span className="font-semibold tabular-nums">{product.quantity}</span>
       </td>
       <td role="cell">
-        <span className="product-cell-label">État du stock</span>
+        <span aria-hidden="true" className="ledger-label">État du stock</span>
         <StockStatusBadge product={product} />
-        <span className="mt-1 block text-xs text-muted">Stock minimum {product.min_stock}</span>
+        <span className="mt-0.5 block text-xs text-muted">Minimum {product.min_stock}</span>
       </td>
-      <td role="cell">
-        <span className="product-cell-label">Prix unitaire</span>
+      <td role="cell" className="cell-end">
+        <span aria-hidden="true" className="ledger-label">Prix unitaire</span>
         <span className="tabular-nums"><ProductPrice value={product.unit_price} /></span>
       </td>
       <td role="cell">
-        <span className="product-cell-label">Statut</span>
+        <span aria-hidden="true" className="ledger-label">Statut</span>
         <ProductStatus isActive={product.is_active} />
       </td>
     </tr>
@@ -136,14 +144,14 @@ function ProductList({ page, focusHeading }: { page: number; focusHeading: () =>
   if (currentPage > lastPage) return <Navigate to={productsPath(lastPage)} replace />;
 
   return (
-    <>
+    <div className="panel">
       {products.length === 0 ? (
-        <EmptyState title="Aucun produit" />
+        <EmptyState title="Aucun produit" embedded />
       ) : (
-        <table role="table" aria-labelledby="products-heading" className="product-table">
+        <table role="table" aria-labelledby="products-heading" className="ledger-table ledger-table--stack">
           <thead role="rowgroup">
             <tr role="row">
-              {productColumns.map((column) => <th key={column} role="columnheader" scope="col">{column}</th>)}
+              {productColumns.map(({ label, className }) => <th key={label} role="columnheader" scope="col" className={className}>{label}</th>)}
             </tr>
           </thead>
           <tbody role="rowgroup">
@@ -151,18 +159,8 @@ function ProductList({ page, focusHeading }: { page: number; focusHeading: () =>
           </tbody>
         </table>
       )}
-      <nav aria-label="Pagination des produits" className="pagination">
-        <p className="text-sm text-muted tabular-nums">Page {currentPage} sur {lastPage}</p>
-        <div className="flex flex-wrap gap-2">
-          <ActionButton variant="secondary" disabled={currentPage === 1} onClick={() => goToPage(currentPage - 1)}>
-            <ChevronLeft aria-hidden="true" className="size-4" /> Précédent
-          </ActionButton>
-          <ActionButton variant="secondary" disabled={currentPage === lastPage} onClick={() => goToPage(currentPage + 1)}>
-            Suivant <ChevronRight aria-hidden="true" className="size-4" />
-          </ActionButton>
-        </div>
-      </nav>
-    </>
+      <LedgerPagination label="Pagination des produits" pagination={state.pagination} onPageChange={goToPage} />
+    </div>
   );
 }
 
@@ -177,7 +175,7 @@ export default function Products() {
 
   return (
     <div lang="fr" className="page-content">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="page-heading">
         <h1 ref={headingRef} id="products-heading" tabIndex={-1} className="page-title">Produits</h1>
         {isAdmin && (
           <Link

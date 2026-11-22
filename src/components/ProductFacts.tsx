@@ -1,10 +1,7 @@
 import type { Product } from '../types/product';
 import StockStatusBadge from './StockStatusBadge';
 
-const priceFormat = new Intl.NumberFormat('fr-FR', {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
+const priceFormat = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'MAD', currencyDisplay: 'code' });
 
 const dateFormat = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
 

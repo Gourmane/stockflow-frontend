@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { LogOut, UserRound } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import ActionButton from './ActionButton';
 import Brand from './Brand';
 import Feedback from './Feedback';
+import UserAvatar from './UserAvatar';
 import { useAuth } from '../context/useAuth';
 import { getAuthErrorMessage } from '../services/authErrors';
 
@@ -34,24 +35,26 @@ export default function AppHeader() {
     }
   }
 
-  const initials = session.user.name.trim().split(/\s+/).slice(0, 2)
-    .map((part) => Array.from(part)[0]).join('').toLocaleUpperCase('fr');
-
   return (
     <header className="min-w-0 lg:col-start-2 lg:row-start-1">
-      <div className="bg-ink px-4 py-3 lg:hidden"><Brand /></div>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-white px-4 py-2.5 sm:px-7 lg:justify-end xl:px-9">
-        <div className="flex min-w-0 flex-auto items-center gap-2.5 lg:flex-initial">
-          <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-full bg-brand-tint text-xs font-bold text-brand">
-            {initials || <UserRound className="size-4" />}
-          </span>
-          <div className="min-w-0 wrap-anywhere">
-            <p className="text-sm font-semibold">{session.user.name}</p>
-            <p className="text-xs text-muted">{session.user.role === 'admin' ? 'Administrateur' : 'Employé'}</p>
+      <div className="flex min-h-14 items-center gap-2 bg-ink px-3 py-1.5 text-white sm:gap-3 sm:px-6 lg:justify-end lg:border-b lg:border-line lg:bg-white lg:text-ink xl:px-8">
+        <div className="mr-auto shrink-0 lg:hidden"><Brand compact /></div>
+        <div className="flex min-w-0 items-center gap-2">
+          <UserAvatar name={session.user.name} inverse />
+          <div className="sr-only min-w-0 min-[360px]:not-sr-only">
+            <p className="truncate text-sm leading-tight font-semibold">{session.user.name}</p>
+            <p className="text-xs leading-tight text-zinc-300 lg:text-muted">{session.user.role === 'admin' ? 'Administrateur' : 'Employé'}</p>
           </div>
         </div>
-        <ActionButton variant="secondary" onClick={handleLogout} isPending={loading} pendingLabel="Déconnexion...">
-          <LogOut aria-hidden="true" className="size-4" /> Déconnexion
+        <ActionButton
+          variant="quiet"
+          className="button-compact shrink-0 max-lg:text-white max-lg:hover:bg-white/10 max-lg:focus-visible:outline-rose-200"
+          aria-label={loading ? 'Déconnexion en cours' : 'Déconnexion'}
+          onClick={handleLogout}
+          isPending={loading}
+          pendingLabel="Déconnexion…"
+        >
+          <LogOut aria-hidden="true" className="size-4" /> <span className="hidden sm:inline">Déconnexion</span>
         </ActionButton>
       </div>
       {error && <div className="px-4 pt-3 sm:px-7 xl:px-9"><Feedback status="error" message={error} /></div>}

@@ -2,7 +2,7 @@ import { LoaderCircle } from 'lucide-react';
 import type { ComponentPropsWithRef } from 'react';
 
 interface ActionButtonProps extends ComponentPropsWithRef<'button'> {
-  variant?: 'primary' | 'secondary' | 'danger';
+  variant?: 'primary' | 'secondary' | 'quiet' | 'danger';
   isPending?: boolean;
   pendingLabel?: string;
 }
@@ -10,6 +10,7 @@ interface ActionButtonProps extends ComponentPropsWithRef<'button'> {
 const variantStyles = {
   primary: 'button-primary',
   secondary: 'button-secondary',
+  quiet: 'button-quiet',
   danger: 'button-danger',
 };
 

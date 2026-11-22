@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
-import { ArrowDownLeft, ArrowRight, ArrowUpRight, Boxes, CircleAlert, Package, TriangleAlert } from 'lucide-react';
+import { ArrowRight, Boxes, CircleAlert, Package, TriangleAlert } from 'lucide-react';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import LoadingState from '../components/LoadingState';
+import MovementTable from '../components/MovementTable';
 import { useAuth } from '../context/useAuth';
 import { getAuthErrorMessage, getHttpStatus } from '../services/authErrors';
 import { dashboardService } from '../services/dashboardService';
-import type { DashboardMovement, DashboardStats } from '../types/dashboard';
+import type { DashboardStats } from '../types/dashboard';
 
 const errorMessages = {
   403: 'Vous n’avez pas accès au tableau de bord.',
@@ -15,7 +16,6 @@ const errorMessages = {
   500: 'Une erreur serveur empêche de charger le tableau de bord.',
 };
 const numberFormat = new Intl.NumberFormat('fr-FR');
-const dateFormat = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
 const indicators = [
   { key: 'total_products', label: 'Références produits', icon: Package, tone: 'bg-brand-tint text-brand' },
   { key: 'total_units', label: 'Unités en stock', icon: Boxes, tone: 'bg-zinc-100 text-ink' },
@@ -27,50 +27,6 @@ type DashboardState =
   | { status: 'loading' }
   | { status: 'ready'; stats: DashboardStats }
   | { status: 'error'; message: string };
-
-function MovementItem({ movement }: { movement: DashboardMovement }) {
-  const date = movement.created_at ? new Date(movement.created_at) : null;
-  const isEntry = movement.type === 'in';
-
-  return (
-    <li className="grid min-w-0 gap-3 px-4 py-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,5fr)] sm:items-start sm:px-5">
-      <div className="min-w-0 wrap-anywhere">
-        <h3 className="font-semibold">{movement.product.name}</h3>
-        <p className="text-sm text-muted">SKU {movement.product.sku}</p>
-      </div>
-      <dl className="grid grid-cols-2 items-start gap-x-3 gap-y-2 text-sm md:grid-cols-[7rem_4.25rem_minmax(0,1fr)_minmax(0,1fr)]">
-        <div>
-          <dt className="sr-only">Type</dt>
-          <dd>
-            <span className={`badge ${isEntry
-              ? 'bg-emerald-50 text-emerald-800'
-              : 'bg-zinc-100 text-zinc-800'}`}
-            >
-              {isEntry
-                ? <ArrowDownLeft aria-hidden="true" className="size-3.5 shrink-0" />
-                : <ArrowUpRight aria-hidden="true" className="size-3.5 shrink-0" />}
-              {isEntry ? 'Entrée (IN)' : 'Sortie (OUT)'}
-            </span>
-          </dd>
-        </div>
-        <div className="min-w-0 wrap-anywhere">
-          <dt className="text-muted">Quantité</dt>
-          <dd className="font-semibold tabular-nums">{numberFormat.format(movement.quantity)}</dd>
-        </div>
-        <div className="min-w-0 wrap-anywhere">
-          <dt className="text-muted">Date</dt>
-          <dd>{date && Number.isFinite(date.getTime())
-            ? <time dateTime={date.toISOString()}>{dateFormat.format(date)}</time>
-            : 'Non renseignée'}</dd>
-        </div>
-        <div className="min-w-0 wrap-anywhere">
-          <dt className="text-muted">Enregistré par</dt>
-          <dd>{movement.user.name}</dd>
-        </div>
-      </dl>
-    </li>
-  );
-}
 
 export default function Dashboard() {
   const { expireSession, session } = useAuth();
@@ -115,34 +71,36 @@ export default function Dashboard() {
 
   return (
     <div lang="fr" className="page-content">
-      <div>
-        <h1 ref={heading} tabIndex={-1} className="page-title">Tableau de bord</h1>
-        {session.status === 'authenticated' && (
-          <p className="mt-1.5 text-sm wrap-anywhere text-muted">Bienvenue, {session.user.name}.</p>
-        )}
+      <div className="page-heading">
+        <div>
+          <h1 ref={heading} tabIndex={-1} className="page-title">Tableau de bord</h1>
+          {session.status === 'authenticated' && (
+            <p className="mt-1 text-sm wrap-anywhere text-muted">Bienvenue, {session.user.name}.</p>
+          )}
+        </div>
       </div>
       {state.status === 'loading' && <LoadingState message="Chargement du tableau de bord…" />}
       {state.status === 'error' && <ErrorState message={state.message} onRetry={retry} />}
       {state.status === 'ready' && (
         <>
-          <dl className="grid gap-3 min-[360px]:grid-cols-2 min-[75rem]:grid-cols-4">
+          <dl className="stock-summary" aria-label="Indicateurs de stock">
             {indicators.map(({ key, label, icon: Icon, tone }) => (
-              <div key={key} className="panel grid min-w-0 grid-rows-[1fr_auto] gap-2 p-4 wrap-anywhere sm:p-5">
-                <dt className="flex flex-col gap-2 text-sm font-medium text-muted">
-                  <span className={`grid size-9 place-items-center rounded-lg ${tone}`} aria-hidden="true">
-                    <Icon className="size-[18px]" />
+              <div key={key} className={`stock-metric ${key === 'total_products' ? 'bg-brand-tint/65' : ''}`}>
+                <dt className="flex items-center gap-2 text-xs leading-tight font-semibold text-muted sm:text-sm">
+                  <span className={`grid size-7 shrink-0 place-items-center rounded-md ${tone}`} aria-hidden="true">
+                    <Icon className="size-4" />
                   </span>
                   {label}
                 </dt>
-                <dd className="text-3xl font-bold tracking-tight tabular-nums">
+                <dd className="self-end text-[clamp(1.65rem,3vw,2.25rem)] leading-none font-bold tracking-tight tabular-nums">
                   {numberFormat.format(state.stats[key])}
                 </dd>
               </div>
             ))}
           </dl>
           <section aria-labelledby="dashboard-movements-heading" className="panel">
-            <div className="flex flex-wrap items-center justify-between gap-x-4 border-b border-line px-4 py-2 sm:px-5">
-              <h2 id="dashboard-movements-heading" className="text-lg font-semibold">Mouvements récents</h2>
+            <div className="flex flex-wrap items-center justify-between gap-x-4 px-3 py-1.5 sm:px-4">
+              <h2 id="dashboard-movements-heading" className="text-base font-bold">Mouvements récents</h2>
               <Link
                 to="/stock-movements"
                 className="text-link"
@@ -151,9 +109,7 @@ export default function Dashboard() {
               </Link>
             </div>
             {state.stats.recent_movements.length > 0 ? (
-              <ol role="list" className="divide-y divide-line">
-                {state.stats.recent_movements.map((movement) => <MovementItem key={movement.id} movement={movement} />)}
-              </ol>
+              <MovementTable headingId="dashboard-movements-heading" movements={state.stats.recent_movements} />
             ) : <EmptyState title="Aucun mouvement de stock enregistré" embedded />}
           </section>
         </>

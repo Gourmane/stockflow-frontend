@@ -2,12 +2,12 @@
 
 @theme {
   --font-sans: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
-  --color-ink: #18181b;
-  --color-muted: #5c5b63;
-  --color-canvas: #f6f5f6;
-  --color-line: #e5e2e5;
-  --color-control: #918b93;
-  --color-brand: #920c34;
+  --color-ink: #211b20;
+  --color-muted: #635960;
+  --color-canvas: #f7f5f6;
+  --color-line: #e7e0e4;
+  --color-control: #968a94;
+  --color-brand: #930d35;
   --color-brand-hover: #720824;
   --color-brand-tint: #fbecf0;
 }
@@ -32,11 +32,15 @@
 
 @layer components {
   .page-content {
-    @apply mx-auto w-full max-w-7xl space-y-5 sm:space-y-6;
+    @apply mx-auto w-full max-w-7xl space-y-5;
   }
 
   .page-title {
-    @apply text-2xl font-bold tracking-tight sm:text-3xl;
+    @apply text-[1.65rem] leading-tight font-bold tracking-tight sm:text-[2rem];
+  }
+
+  .page-heading {
+    @apply flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-line pb-4 sm:pb-5;
   }
 
   .panel {
@@ -59,6 +63,14 @@
     @apply border-control bg-white text-ink hover:bg-canvas disabled:bg-white;
   }
 
+  .button-quiet {
+    @apply border-transparent bg-transparent text-ink hover:bg-canvas disabled:bg-transparent;
+  }
+
+  .button-compact {
+    @apply min-h-11 px-2.5 lg:min-h-8 lg:py-1;
+  }
+
   .button-danger {
     @apply border-transparent bg-red-700 text-white hover:bg-red-800 disabled:bg-red-700;
   }
@@ -68,43 +80,79 @@
   }
 
   .pagination {
-    @apply flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-white px-4 py-3 sm:px-5;
+    @apply flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-line px-3 py-2 sm:px-4;
   }
 
   .badge {
-    @apply inline-flex w-fit max-w-full items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold;
+    @apply inline-flex w-fit max-w-full items-center gap-1.5 rounded-md px-2 py-1 text-xs leading-tight font-semibold;
   }
 
   .ui-dialog {
     @apply fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-xl border border-line bg-white p-5 text-ink shadow-lg backdrop:bg-ink/60 sm:p-6;
   }
 
-  .product-table {
+  .ledger-table {
     @apply w-full border-separate border-spacing-0 text-start text-sm;
   }
 
-  .product-table thead th {
-    @apply border-b border-line bg-canvas px-3 py-3 text-start text-xs font-semibold text-muted;
+  .ledger-table thead th {
+    @apply border-b border-line bg-canvas px-3 py-2.5 text-start text-xs font-semibold text-muted;
   }
 
-  .product-table thead th:first-child {
-    @apply w-1/4 rounded-tl-xl;
+  .ledger-table:first-child thead th:first-child {
+    @apply rounded-tl-xl;
   }
 
-  .product-table thead th:last-child {
+  .ledger-table:first-child thead th:last-child {
     @apply rounded-tr-xl;
   }
 
-  .product-row > :is(th, td) {
-    @apply min-w-0 px-3 py-3 align-middle wrap-anywhere;
+  .ledger-table :is(th, td):first-child {
+    @apply xl:pl-4;
   }
 
-  .product-row:not(:last-child) > :is(th, td) {
+  .ledger-table :is(th, td):last-child {
+    @apply xl:pr-4;
+  }
+
+  .ledger-table tbody :is(th, td) {
+    @apply min-w-0 px-3 py-2 align-middle wrap-anywhere;
+  }
+
+  .ledger-table tbody th {
+    @apply text-start font-semibold;
+  }
+
+  .ledger-table tbody tr:not(:last-child) > :is(th, td) {
     @apply border-b border-line;
   }
 
-  .product-cell-label {
+  .ledger-table :is(th, td).cell-end {
+    @apply text-end tabular-nums;
+  }
+
+  .ledger-label {
     @apply hidden;
+  }
+
+  .stock-summary {
+    @apply grid grid-cols-2 overflow-hidden rounded-xl border border-line bg-white min-[72rem]:grid-cols-[1.08fr_1fr_1fr_1fr];
+  }
+
+  .stock-metric {
+    @apply grid min-w-0 grid-rows-[auto_1fr] gap-2 border-line px-3 py-3.5 sm:px-5 sm:py-4;
+  }
+
+  .stock-metric:not(:first-child) {
+    @apply min-[72rem]:border-s;
+  }
+
+  .stock-metric:nth-child(even) {
+    @apply border-s;
+  }
+
+  .stock-metric:nth-child(n+3) {
+    @apply border-t min-[72rem]:border-t-0;
   }
 
   .login-layout {
@@ -159,45 +207,43 @@
   }
 }
 
-@media (width >= 72rem) {
-  .product-table {
-    @apply rounded-xl border border-line bg-white;
-  }
-
-  .product-row:hover {
-    @apply bg-brand-tint/25;
-  }
-}
-
-@media (width < 72rem) {
-  .product-table thead {
-    @apply sr-only;
-  }
-
-  .product-table,
-  .product-table tbody {
-    @apply block;
-  }
-
-  .product-table tbody {
-    @apply grid gap-3 sm:grid-cols-2;
-  }
-
-  .product-row {
-    @apply grid min-w-0 grid-cols-2 content-start gap-x-3 gap-y-3 rounded-xl border border-line bg-white p-4;
-  }
-
-  .product-row > :is(th, td),
-  .product-row:not(:last-child) > :is(th, td) {
-    @apply border-0 p-0;
-  }
-
-  .product-cell-label {
-    @apply mb-1 block text-xs font-medium text-muted;
+@media (hover: hover) {
+  .ledger-table tbody tr:hover {
+    @apply bg-brand-tint/35;
   }
 }
 
 @media (width < 64rem) {
+  .ledger-table--stack thead {
+    @apply sr-only;
+  }
+
+  .ledger-table--stack,
+  .ledger-table--stack tbody {
+    @apply block;
+  }
+
+  .ledger-table--stack tbody tr {
+    @apply grid min-w-0 grid-cols-2 gap-x-3 gap-y-2 px-3 py-3.5 sm:px-4;
+  }
+
+  .ledger-table--stack tbody tr:not(:last-child) {
+    @apply border-b border-line;
+  }
+
+  .ledger-table--stack tbody tr > :is(th, td),
+  .ledger-table--stack tbody tr:not(:last-child) > :is(th, td) {
+    @apply border-0 p-0;
+  }
+
+  .ledger-table--stack .ledger-label {
+    @apply mb-1 block text-xs font-medium text-muted;
+  }
+
+  .ledger-table--stack td.cell-end {
+    @apply text-start;
+  }
+
   .login-backdrop {
     grid-row: 1 / 2;
   }

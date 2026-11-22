@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
-import ActionButton from '../components/ActionButton';
+import { ArrowRight } from 'lucide-react';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import LoadingState from '../components/LoadingState';
+import LedgerPagination from '../components/LedgerPagination';
+import MovementTable from '../components/MovementTable';
 import { getAuthErrorMessage } from '../services/authErrors';
 import { stockMovementService } from '../services/stockMovementService';
 import type { Pagination } from '../types/api';
@@ -15,8 +17,6 @@ const errorMessages = {
   419: 'La vérification de sécurité (CSRF) a échoué. Reconnectez-vous puis réessayez.',
   500: 'Une erreur serveur empêche de charger les mouvements de stock.',
 };
-const dateFormat = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
-const numberFormat = new Intl.NumberFormat('fr-FR');
 
 type HistoryState =
   | { status: 'loading' }
@@ -25,50 +25,6 @@ type HistoryState =
 
 function historyPath(page: number) {
   return page === 1 ? '/stock-movements' : `/stock-movements?page=${page}`;
-}
-
-function HistoryItem({ movement }: { movement: StockMovementHistoryItem }) {
-  const date = movement.created_at ? new Date(movement.created_at) : null;
-  const isEntry = movement.type === 'in';
-
-  return (
-    <li className="min-w-0 space-y-3 p-4 sm:px-5">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="min-w-0 wrap-anywhere">
-          <h2 className="font-semibold">{movement.product.name}</h2>
-          <p className="text-sm text-muted">SKU {movement.product.sku}</p>
-        </div>
-        <span className={`badge ${isEntry
-          ? 'bg-emerald-50 text-emerald-800'
-          : 'bg-zinc-100 text-zinc-800'}`}
-        >
-          {isEntry ? 'Entrée (IN)' : 'Sortie (OUT)'}
-        </span>
-      </div>
-      <dl className="grid grid-cols-2 gap-3 border-t border-line pt-3 text-sm sm:grid-cols-3">
-        <div className="min-w-0 wrap-anywhere">
-          <dt className="text-muted">Date</dt>
-          <dd>{date && Number.isFinite(date.getTime())
-            ? <time dateTime={date.toISOString()}>{dateFormat.format(date)}</time>
-            : 'Non renseignée'}</dd>
-        </div>
-        <div className="min-w-0 wrap-anywhere">
-          <dt className="text-muted">Quantité</dt>
-          <dd className="font-semibold tabular-nums">{numberFormat.format(movement.quantity)}</dd>
-        </div>
-        <div className="col-span-2 min-w-0 wrap-anywhere sm:col-span-1">
-          <dt className="text-muted">Enregistré par</dt>
-          <dd>{movement.user.name}</dd>
-        </div>
-        {movement.note && (
-          <div className="col-span-full min-w-0">
-            <dt className="text-muted">Note</dt>
-            <dd className="whitespace-pre-wrap wrap-anywhere">{movement.note}</dd>
-          </div>
-        )}
-      </dl>
-    </li>
-  );
 }
 
 function HistoryList({ page, focusHeading }: { page: number; focusHeading: () => void }) {
@@ -117,24 +73,16 @@ function HistoryList({ page, focusHeading }: { page: number; focusHeading: () =>
   if (currentPage > lastPage) return <Navigate to={historyPath(lastPage)} replace />;
 
   return (
-    <>
+    <div className="panel">
       {movements.length ? (
-        <ol role="list" aria-labelledby="stock-movements-heading" className="panel divide-y divide-line">
-          {movements.map((movement) => <HistoryItem key={movement.id} movement={movement} />)}
-        </ol>
-      ) : <EmptyState title="Aucun mouvement sur cette page" />}
-      <nav aria-label="Pagination des mouvements" className="pagination">
-        <p className="text-sm text-muted tabular-nums">Page {currentPage} sur {lastPage}</p>
-        <div className="flex flex-wrap gap-2">
-          <ActionButton variant="secondary" disabled={currentPage === 1} onClick={() => void navigate(historyPath(currentPage - 1))}>
-            Précédent
-          </ActionButton>
-          <ActionButton variant="secondary" disabled={currentPage === lastPage} onClick={() => void navigate(historyPath(currentPage + 1))}>
-            Suivant
-          </ActionButton>
-        </div>
-      </nav>
-    </>
+        <MovementTable headingId="stock-movements-heading" movements={movements} showNotes />
+      ) : <EmptyState title="Aucun mouvement sur cette page" embedded />}
+      <LedgerPagination
+        label="Pagination des mouvements"
+        pagination={state.pagination}
+        onPageChange={(target) => void navigate(historyPath(target))}
+      />
+    </div>
   );
 }
 
@@ -151,13 +99,13 @@ export default function StockMovements() {
 
   return (
     <div lang="fr" className="page-content">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="page-heading">
         <h1 id="stock-movements-heading" ref={heading} tabIndex={-1} className="page-title">Mouvements de stock</h1>
         <Link
           to="/products"
           className="button button-primary"
         >
-          Choisir un produit
+          Choisir un produit <ArrowRight aria-hidden="true" className="size-4" />
         </Link>
       </div>
       <HistoryList key={page} page={page} focusHeading={() => heading.current?.focus()} />
