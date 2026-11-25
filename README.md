@@ -73,3 +73,17 @@ export default defineConfig([
 ])
 
 ```
+
+## Tests StockFlow
+
+Depuis le dépôt Frontend, utilisez Node.js 24.18 ou une version compatible avec le verrou et npm.
+
+```bash
+npm ci
+npm test
+npm run test:types
+npm exec -- tsc -b
+npm run build
+```
+
+Pour exécuter un seul fichier, utilisez `npm test -- tests/stock-movements.test.tsx`. Vitest et React Testing Library exécutent les routes et composants dans jsdom. Les scénarios contrôlent les requêtes et réponses HTTP via un adaptateur Axios simulé. La suite Backend couvre séparément les cookies et le CSRF.
