@@ -33,13 +33,14 @@ export const product: Product = {
   updated_at: null,
 }
 
-export function renderRoute(path: string) {
+export function renderRoute(path: string, reactStrictMode = false) {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <AuthProvider>
         <App />
       </AuthProvider>
     </MemoryRouter>,
+    { reactStrictMode },
   )
 }
 
