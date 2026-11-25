@@ -1,4 +1,9 @@
 import { useState } from 'react';
+import { LogOut } from 'lucide-react';
+import ActionButton from './ActionButton';
+import Brand from './Brand';
+import Feedback from './Feedback';
+import UserAvatar from './UserAvatar';
 import { useAuth } from '../context/useAuth';
 import { getAuthErrorMessage } from '../services/authErrors';
 
@@ -31,25 +36,28 @@ export default function AppHeader() {
   }
 
   return (
-    <header className="border-b border-slate-200 bg-white px-4 py-3 sm:px-6 md:px-8">
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
-        <span className="text-lg font-bold">StockFlow</span>
-        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4">
-          <p className="min-w-0 text-sm font-medium wrap-anywhere">{session.user.name}</p>
-          <span className="text-xs font-medium text-slate-600">
-            {session.user.role === 'admin' ? 'Admin' : 'Employé'}
-          </span>
-          <button
-            type="button"
-            onClick={handleLogout}
-            disabled={loading}
-            className="min-h-11 shrink-0 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50"
-          >
-            {loading ? 'Déconnexion...' : 'Déconnexion'}
-          </button>
+    <header className="min-w-0 lg:col-start-2 lg:row-start-1">
+      <div className="flex min-h-14 items-center gap-2 bg-ink px-3 py-1.5 text-white sm:gap-3 sm:px-6 lg:justify-end lg:border-b lg:border-line lg:bg-white lg:text-ink xl:px-8">
+        <div className="mr-auto shrink-0 lg:hidden"><Brand compact /></div>
+        <div className="flex min-w-0 items-center gap-2">
+          <UserAvatar name={session.user.name} inverse />
+          <div className="sr-only min-w-0 min-[360px]:not-sr-only">
+            <p className="truncate text-sm leading-tight font-semibold">{session.user.name}</p>
+            <p className="text-xs leading-tight text-zinc-300 lg:text-muted">{session.user.role === 'admin' ? 'Administrateur' : 'Employé'}</p>
+          </div>
         </div>
+        <ActionButton
+          variant="quiet"
+          className="button-compact shrink-0 max-lg:text-white max-lg:hover:bg-white/10 max-lg:focus-visible:outline-rose-200"
+          aria-label={loading ? 'Déconnexion en cours' : 'Déconnexion'}
+          onClick={handleLogout}
+          isPending={loading}
+          pendingLabel="Déconnexion…"
+        >
+          <LogOut aria-hidden="true" className="size-4" /> <span className="hidden sm:inline">Déconnexion</span>
+        </ActionButton>
       </div>
-      {error && <p role="alert" className="mt-2 text-sm text-red-700">{error}</p>}
+      {error && <div className="px-4 pt-3 sm:px-7 xl:px-9"><Feedback status="error" message={error} /></div>}
     </header>
   );
 }

@@ -1,3 +1,6 @@
+import ActionButton from './ActionButton';
+import Feedback from './Feedback';
+
 interface SessionCheckErrorProps {
   message: string;
   onRetry?: () => void;
@@ -6,13 +9,14 @@ interface SessionCheckErrorProps {
 
 export default function SessionCheckError({ message, onRetry, disabled }: SessionCheckErrorProps) {
   return (
-    <div className="mb-4 rounded bg-red-100 p-3 text-sm text-red-700">
-      <p role="alert">{message}</p>
-      {onRetry && (
-        <button type="button" onClick={onRetry} disabled={disabled} className="mt-2 underline disabled:opacity-50">
+    <Feedback
+      status="error"
+      message={message}
+      action={onRetry && (
+        <ActionButton variant="secondary" onClick={onRetry} disabled={disabled}>
           Réessayer
-        </button>
+        </ActionButton>
       )}
-    </div>
+    />
   );
 }

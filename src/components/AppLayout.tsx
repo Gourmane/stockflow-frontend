@@ -4,14 +4,12 @@ import Sidebar from './Sidebar';
 
 export default function AppLayout() {
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
+    <div className="grid min-h-dvh grid-cols-[minmax(0,1fr)] content-start lg:grid-cols-[12.5rem_minmax(0,1fr)] lg:grid-rows-[auto_1fr] xl:grid-cols-[13.5rem_minmax(0,1fr)]">
       <AppHeader />
-      <div className="flex flex-1 flex-col md:flex-row">
-        <Sidebar />
-        <main className="min-w-0 flex-1 p-4 sm:p-6 md:p-8">
-          <Outlet />
-        </main>
-      </div>
+      <Sidebar />
+      <main className="min-w-0 px-3 py-5 sm:p-6 lg:col-start-2 lg:row-start-2 xl:px-8 xl:py-7">
+        <Outlet />
+      </main>
     </div>
   );
 }

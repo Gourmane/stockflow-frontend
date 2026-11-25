@@ -18,7 +18,7 @@ export default function StockStatusBadge({ product }: { product: Stock }) {
   const { label, icon: Icon, style } = stockStatuses[getStockStatus(product)];
 
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${style}`}>
+    <span className={`badge ${style}`}>
       <Icon aria-hidden="true" className="size-3.5 shrink-0" />
       <span>{label}</span>
     </span>

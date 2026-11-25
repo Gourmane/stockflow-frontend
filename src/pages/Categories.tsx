@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Layers3, Pencil, Plus } from 'lucide-react';
 import ActionButton from '../components/ActionButton';
 import CategoryForm from '../components/CategoryForm';
 import EmptyState from '../components/EmptyState';
@@ -78,15 +79,15 @@ export default function Categories() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 ref={headingRef} tabIndex={-1} className="text-2xl font-bold">Catégories</h1>
+    <div className="page-content">
+      <div className="page-heading">
+        <h1 ref={headingRef} tabIndex={-1} className="page-title">Catégories</h1>
         {isAdmin && (
           <ActionButton
             disabled={state.status !== 'loaded'}
             onClick={() => openEditor({ mode: 'create' })}
           >
-            Ajouter une catégorie
+            <Plus aria-hidden="true" className="size-4" /> Ajouter une catégorie
           </ActionButton>
         )}
       </div>
@@ -109,19 +110,24 @@ export default function Categories() {
           <ul
             role="list"
             aria-label="Liste des catégories"
-            className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white"
+            className="panel grid gap-px overflow-hidden bg-line p-0 sm:grid-cols-2"
           >
             {state.categories.map((category) => (
-              <li key={category.id} className="flex items-center justify-between gap-3 px-4 py-3 text-sm font-medium sm:px-6">
-                <span className="min-w-0 wrap-anywhere">{category.name}</span>
+              <li key={category.id} className="flex min-h-14 items-center justify-between gap-2 bg-white px-3 py-1.5 text-sm font-semibold sm:px-4">
+                <span className="flex min-w-0 items-center gap-2.5 wrap-anywhere">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-md bg-brand-tint text-brand">
+                    <Layers3 aria-hidden="true" className="size-4" />
+                  </span>
+                  {category.name}
+                </span>
                 {isAdmin && (
                   <ActionButton
-                    variant="secondary"
-                    className="shrink-0"
+                    variant="quiet"
+                    className="button-compact shrink-0"
                     aria-label={`Modifier la catégorie ${category.name}`}
                     onClick={() => openEditor({ mode: 'update', category })}
                   >
-                    Modifier
+                    <Pencil aria-hidden="true" className="size-3.5" /> Modifier
                   </ActionButton>
                 )}
               </li>

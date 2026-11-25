@@ -43,7 +43,11 @@ export default function App() {
       {/* Page inconnue */}
       <Route
         path="*"
-        element={<h1>404 - Page introuvable</h1>}
+        element={
+          <main className="mx-auto max-w-lg px-4 py-8">
+            <h1 className="panel page-title p-6">404 – Page introuvable</h1>
+          </main>
+        }
       />
     </Routes>
   );

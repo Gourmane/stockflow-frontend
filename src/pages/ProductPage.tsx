@@ -33,8 +33,6 @@ const loadErrorMessages = {
   419: 'La vérification de sécurité a échoué. Réessayez.',
 };
 
-const linkStyle = 'inline-flex min-h-11 w-fit items-center rounded-sm text-sm font-medium text-blue-800 underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600';
-
 function ProductPageContent({ mode, id }: { mode: Mode; id: number | null }) {
   const [state, setState] = useState<ProductPageState>({ status: 'loading' });
   const [loadAttempt, setLoadAttempt] = useState(0);
@@ -110,11 +108,11 @@ function ProductPageContent({ mode, id }: { mode: Mode; id: number | null }) {
   const returnToDetails = mode === 'edit' && !notFound;
 
   return (
-    <div lang="fr" className="max-w-3xl space-y-4">
-      <Link to={returnToDetails ? detailsPath : listPath} className={linkStyle}>
+    <div lang="fr" className="page-content max-w-4xl">
+      <Link to={returnToDetails ? detailsPath : listPath} className="text-link">
         {returnToDetails ? 'Retour à la fiche produit' : 'Retour aux produits'}
       </Link>
-      <h1 ref={headingRef} tabIndex={-1} className="text-2xl font-bold">{titles[mode]}</h1>
+      <h1 ref={headingRef} tabIndex={-1} className="page-title">{titles[mode]}</h1>
       {mode === 'details' && (location.state === 'product-created' || location.state === 'product-updated') && (
         <Feedback status="success" message={feedback} />
       )}
@@ -139,7 +137,7 @@ function ProductPageContent({ mode, id }: { mode: Mode; id: number | null }) {
             <EmptyState
               title="Aucune catégorie disponible"
               description="Ajoutez une catégorie pour pouvoir enregistrer un produit."
-              action={<Link to="/categories" className={linkStyle}>Voir les catégories</Link>}
+              action={<Link to="/categories" className="text-link">Voir les catégories</Link>}
             />
           ))}
         </>

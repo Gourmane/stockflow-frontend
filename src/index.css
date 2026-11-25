@@ -1,2 +1,251 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --color-ink: #211b20;
+  --color-muted: #635960;
+  --color-canvas: #f7f5f6;
+  --color-line: #e7e0e4;
+  --color-control: #968a94;
+  --color-brand: #930d35;
+  --color-brand-hover: #720824;
+  --color-brand-tint: #fbecf0;
+}
+
+@layer base {
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-3 outline-brand;
+  }
+
+  ::selection {
+    @apply bg-brand-tint text-brand-hover;
+  }
+
+  button:not(:disabled) {
+    @apply cursor-pointer;
+  }
+}
+
+@layer components {
+  .page-content {
+    @apply mx-auto w-full max-w-7xl space-y-5;
+  }
+
+  .page-title {
+    @apply text-[1.65rem] leading-tight font-bold tracking-tight sm:text-[2rem];
+  }
+
+  .page-heading {
+    @apply flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-line pb-4 sm:pb-5;
+  }
+
+  .panel {
+    @apply rounded-xl border border-line bg-white;
+  }
+
+  .field-control {
+    @apply min-h-11 w-full rounded-lg border border-control bg-white px-3 py-2 text-base text-ink caret-brand placeholder:text-muted focus-visible:border-brand focus-visible:outline-offset-1 disabled:bg-canvas aria-invalid:border-red-700 sm:text-sm;
+  }
+
+  .button {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-55 motion-reduce:transition-none;
+  }
+
+  .button-primary {
+    @apply border-transparent bg-brand text-white hover:bg-brand-hover disabled:bg-brand;
+  }
+
+  .button-secondary {
+    @apply border-control bg-white text-ink hover:bg-canvas disabled:bg-white;
+  }
+
+  .button-quiet {
+    @apply border-transparent bg-transparent text-ink hover:bg-canvas disabled:bg-transparent;
+  }
+
+  .button-compact {
+    @apply min-h-11 px-2.5 lg:min-h-8 lg:py-1;
+  }
+
+  .button-danger {
+    @apply border-transparent bg-red-700 text-white hover:bg-red-800 disabled:bg-red-700;
+  }
+
+  .text-link {
+    @apply inline-flex min-h-11 w-fit items-center gap-2 rounded-sm text-sm font-semibold text-brand underline decoration-brand/30 underline-offset-4 hover:decoration-current;
+  }
+
+  .pagination {
+    @apply flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-line px-3 py-2 sm:px-4;
+  }
+
+  .badge {
+    @apply inline-flex w-fit max-w-full items-center gap-1.5 rounded-md px-2 py-1 text-xs leading-tight font-semibold;
+  }
+
+  .ui-dialog {
+    @apply fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-xl border border-line bg-white p-5 text-ink shadow-lg backdrop:bg-ink/60 sm:p-6;
+  }
+
+  .ledger-table {
+    @apply w-full border-separate border-spacing-0 text-start text-sm;
+  }
+
+  .ledger-table thead th {
+    @apply border-b border-line bg-canvas px-3 py-2.5 text-start text-xs font-semibold text-muted;
+  }
+
+  .ledger-table:first-child thead th:first-child {
+    @apply rounded-tl-xl;
+  }
+
+  .ledger-table:first-child thead th:last-child {
+    @apply rounded-tr-xl;
+  }
+
+  .ledger-table :is(th, td):first-child {
+    @apply xl:pl-4;
+  }
+
+  .ledger-table :is(th, td):last-child {
+    @apply xl:pr-4;
+  }
+
+  .ledger-table tbody :is(th, td) {
+    @apply min-w-0 px-3 py-2 align-middle wrap-anywhere;
+  }
+
+  .ledger-table tbody th {
+    @apply text-start font-semibold;
+  }
+
+  .ledger-table tbody tr:not(:last-child) > :is(th, td) {
+    @apply border-b border-line;
+  }
+
+  .ledger-table :is(th, td).cell-end {
+    @apply text-end tabular-nums;
+  }
+
+  .ledger-label {
+    @apply hidden;
+  }
+
+  .stock-summary {
+    @apply grid grid-cols-2 overflow-hidden rounded-xl border border-line bg-white min-[72rem]:grid-cols-[1.08fr_1fr_1fr_1fr];
+  }
+
+  .stock-metric {
+    @apply grid min-w-0 grid-rows-[auto_1fr] gap-2 border-line px-3 py-3.5 sm:px-5 sm:py-4;
+  }
+
+  .stock-metric:not(:first-child) {
+    @apply min-[72rem]:border-s;
+  }
+
+  .stock-metric:nth-child(even) {
+    @apply border-s;
+  }
+
+  .stock-metric:nth-child(n+3) {
+    @apply border-t min-[72rem]:border-t-0;
+  }
+
+  .login-layout {
+    @apply relative isolate grid min-h-dvh grid-rows-[auto_auto_1fr] bg-canvas lg:grid-cols-[minmax(0,1.14fr)_minmax(0,1fr)] lg:grid-rows-[1fr_auto];
+  }
+
+  .login-backdrop {
+    @apply absolute inset-0 -z-10 bg-ink lg:right-auto lg:w-[53.27%];
+    background-image: linear-gradient(90deg, #18181b 6%, #18181be8 47%, #18181b55 100%), url("./assets/stockroom.jpg");
+    background-position: center, center 54%;
+    background-size: cover;
+  }
+
+  .login-intro {
+    @apply px-5 pb-14 pt-6 text-white sm:px-10 lg:col-start-1 lg:row-start-1 lg:flex lg:flex-col lg:items-start lg:px-[clamp(2.5rem,5.3vw,6rem)] lg:pb-10 lg:pt-12;
+  }
+
+  .login-intro-copy {
+    @apply mt-5 lg:my-auto lg:py-12;
+  }
+
+  .login-intro-copy h2 {
+    @apply max-w-[19ch] text-[clamp(1.75rem,5vw,2.5rem)] leading-[1.07] font-bold tracking-tight lg:text-[clamp(3.25rem,4.5vw,5rem)];
+  }
+
+  .login-intro-copy h2 span {
+    @apply block text-rose-400;
+  }
+
+  .login-main {
+    @apply -mt-6 flex min-w-0 justify-center px-4 sm:px-8 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:items-center lg:bg-white lg:px-12 lg:py-10;
+  }
+
+  .login-card {
+    @apply w-full max-w-[27rem] rounded-xl border border-line bg-white p-5 sm:p-8 lg:rounded-none lg:border-0 lg:p-0;
+  }
+
+  .login-label {
+    @apply mb-2 flex items-center gap-2 text-sm font-semibold;
+  }
+
+  .login-credit {
+    @apply mx-auto w-full max-w-[27rem] self-start px-5 py-5 text-muted lg:col-start-1 lg:row-start-2 lg:mx-0 lg:max-w-none lg:px-[clamp(2.5rem,5.3vw,6rem)] lg:pb-10 lg:text-zinc-200;
+  }
+
+  .demo-role {
+    @apply flex items-center gap-2 rounded-lg border border-line bg-canvas px-2.5 py-2 text-xs font-semibold sm:px-3 sm:text-sm;
+  }
+
+  .demo-role svg {
+    @apply size-4 shrink-0 text-brand;
+  }
+}
+
+@media (hover: hover) {
+  .ledger-table tbody tr:hover {
+    @apply bg-brand-tint/35;
+  }
+}
+
+@media (width < 64rem) {
+  .ledger-table--stack thead {
+    @apply sr-only;
+  }
+
+  .ledger-table--stack,
+  .ledger-table--stack tbody {
+    @apply block;
+  }
+
+  .ledger-table--stack tbody tr {
+    @apply grid min-w-0 grid-cols-2 gap-x-3 gap-y-2 px-3 py-3.5 sm:px-4;
+  }
+
+  .ledger-table--stack tbody tr:not(:last-child) {
+    @apply border-b border-line;
+  }
+
+  .ledger-table--stack tbody tr > :is(th, td),
+  .ledger-table--stack tbody tr:not(:last-child) > :is(th, td) {
+    @apply border-0 p-0;
+  }
+
+  .ledger-table--stack .ledger-label {
+    @apply mb-1 block text-xs font-medium text-muted;
+  }
+
+  .ledger-table--stack td.cell-end {
+    @apply text-start;
+  }
+
+  .login-backdrop {
+    grid-row: 1 / 2;
+  }
+}
+
